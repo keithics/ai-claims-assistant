@@ -150,3 +150,9 @@ variable "budget_state_storage_id" {
   description = "Resource ID of the storage account that holds the budget state. When set, agent_app gets Storage Blob Data Reader on it."
   default     = ""
 }
+
+variable "agent_levers" {
+  type        = string
+  description = "Comma-separated token levers switched on in agent_app. The measured recommendation is compact_prompts,retrieval_trim (docs/unit-economics.md)."
+  default     = "compact_prompts,retrieval_trim"
+}

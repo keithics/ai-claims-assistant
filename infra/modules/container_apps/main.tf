@@ -170,6 +170,7 @@ resource "azurerm_container_app" "this" {
           CLAIMS_API_URL           = coalesce(var.claims_api_url, local.urls["claims_api"])
           AGENT_CORS_ORIGINS       = local.urls["web_ui"]
           BUDGET_STATE_ACCOUNT_URL = var.budget_state_account_url
+          AGENT_LEVERS             = var.agent_levers
           AZURE_CLIENT_ID          = azurerm_user_assigned_identity.this["agent_app"].client_id
         } : {}
 
