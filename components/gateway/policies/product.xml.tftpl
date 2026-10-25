@@ -1,0 +1,32 @@
+<policies>
+  <inbound>
+    <base />
+    <choose>
+      <when condition="@(context.Request.Headers.GetValueOrDefault("x-country", "").Trim().ToLowerInvariant() != "${country}")">
+        <return-response>
+          <set-status code="403" reason="Forbidden" />
+          <set-header name="Content-Type" exists-action="override">
+            <value>application/json</value>
+          </set-header>
+          <set-body>{"error":"x-country does not match this subscription"}</set-body>
+        </return-response>
+      </when>
+    </choose>
+    <llm-token-limit
+      counter-key="@(context.Subscription.Id)"
+      tokens-per-minute="${tokens_per_minute}"
+      token-quota="${token_quota}"
+      token-quota-period="${token_quota_period}"
+      estimate-prompt-tokens="false"
+      remaining-tokens-header-name="x-ratelimit-remaining-tokens" />
+  </inbound>
+  <backend>
+    <base />
+  </backend>
+  <outbound>
+    <base />
+  </outbound>
+  <on-error>
+    <base />
+  </on-error>
+</policies>

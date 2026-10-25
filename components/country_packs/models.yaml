@@ -1,0 +1,25 @@
+# PLACEHOLDER PRICES (USD per 1M tokens). Update from Azure pricing before trusting any cost number.
+# Models and versions checked 2026-10-25: GlobalStandard in southeastasia and japaneast.
+# The large tier is gpt-5-mini because this subscription has no gpt-4.1 quota. It is a reasoning model.
+# Prices are still placeholders.
+deployments:
+  small-a:
+    tier: small
+    model: gpt-4.1-mini
+    version: "2025-04-14"
+    prices: {input_per_1m: 0.40, cached_input_per_1m: 0.10, output_per_1m: 1.60}
+  small-b:
+    tier: small
+    model: gpt-4.1-mini
+    version: "2025-04-14"
+    prices: {input_per_1m: 0.40, cached_input_per_1m: 0.10, output_per_1m: 1.60}
+  large:
+    tier: large
+    model: gpt-5-mini
+    version: "2025-08-07"
+    prices: {input_per_1m: 0.25, cached_input_per_1m: 0.025, output_per_1m: 2.00}
+  embedding:
+    tier: embedding
+    model: text-embedding-3-small
+    version: "1"
+    prices: {input_per_1m: 0.02, cached_input_per_1m: 0.02, output_per_1m: 0}

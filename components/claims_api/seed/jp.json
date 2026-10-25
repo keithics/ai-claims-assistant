@@ -1,0 +1,100 @@
+{
+  "claims": [
+    {
+      "claim_id": "JP-1040",
+      "country": "jp",
+      "policy_number": "POL-JP-1207280",
+      "claim_type": "home",
+      "incident_date": "2026-09-03",
+      "description": "Water damage from a burst pipe",
+      "amount_claimed": "21600.0",
+      "currency": "JPY",
+      "status": "submitted",
+      "last_update": "2026-10-10"
+    },
+    {
+      "claim_id": "JP-1041",
+      "country": "jp",
+      "policy_number": "POL-JP-1207287",
+      "claim_type": "motor",
+      "incident_date": "2026-09-06",
+      "description": "Windscreen cracked by road debris",
+      "amount_claimed": "40500.0",
+      "currency": "JPY",
+      "status": "under_review",
+      "last_update": "2026-10-11"
+    },
+    {
+      "claim_id": "JP-1042",
+      "country": "jp",
+      "policy_number": "POL-JP-1207294",
+      "claim_type": "health",
+      "incident_date": "2026-09-09",
+      "description": "Outpatient surgery for appendicitis follow-up",
+      "amount_claimed": "59400.0",
+      "currency": "JPY",
+      "status": "under_review",
+      "last_update": "2026-10-12"
+    },
+    {
+      "claim_id": "JP-1043",
+      "country": "jp",
+      "policy_number": "POL-JP-1207301",
+      "claim_type": "home",
+      "incident_date": "2026-09-12",
+      "description": "Water damage from a burst pipe",
+      "amount_claimed": "108000.0",
+      "currency": "JPY",
+      "status": "approved",
+      "last_update": "2026-10-13"
+    },
+    {
+      "claim_id": "JP-1044",
+      "country": "jp",
+      "policy_number": "POL-JP-1207308",
+      "claim_type": "motor",
+      "incident_date": "2026-10-15",
+      "description": "Windscreen cracked by road debris",
+      "amount_claimed": "175500.0",
+      "currency": "JPY",
+      "status": "paid",
+      "last_update": "2026-10-14"
+    },
+    {
+      "claim_id": "JP-1045",
+      "country": "jp",
+      "policy_number": "POL-JP-1207315",
+      "claim_type": "health",
+      "incident_date": "2026-10-18",
+      "description": "Outpatient surgery for appendicitis follow-up",
+      "amount_claimed": "24300.0",
+      "currency": "JPY",
+      "status": "rejected",
+      "last_update": "2026-10-15"
+    },
+    {
+      "claim_id": "JP-1046",
+      "country": "jp",
+      "policy_number": "POL-JP-1207322",
+      "claim_type": "home",
+      "incident_date": "2026-10-21",
+      "description": "Water damage from a burst pipe",
+      "amount_claimed": "83700.0",
+      "currency": "JPY",
+      "status": "submitted",
+      "last_update": "2026-10-16"
+    },
+    {
+      "claim_id": "JP-1047",
+      "country": "jp",
+      "policy_number": "POL-JP-1207329",
+      "claim_type": "motor",
+      "incident_date": "2026-10-24",
+      "description": "Windscreen cracked by road debris",
+      "amount_claimed": "140400.0",
+      "currency": "JPY",
+      "status": "approved",
+      "last_update": "2026-10-17"
+    }
+  ]
+}

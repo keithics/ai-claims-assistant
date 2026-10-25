@@ -1,0 +1,12 @@
+code: ph
+name: Philippines
+languages: [en, fil, ceb]
+azure_region: southeastasia
+deployment_type: regional
+allowed_model_tiers: [small, large]
+search_filter: "country eq 'ph'"
+log_prompts: false
+retention_days: 30
+monthly_budget_usd: 10
+human_handoff: "Call centre, Filipino and English"
+regulatory_notes_ref: docs/regulatory.md#philippines

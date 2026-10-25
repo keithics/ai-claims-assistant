@@ -1,0 +1,12 @@
+code: sg
+name: Singapore
+languages: [en]
+azure_region: southeastasia
+deployment_type: regional
+allowed_model_tiers: [small, large]
+search_filter: "country eq 'sg'"
+log_prompts: false
+retention_days: 30
+monthly_budget_usd: 10
+human_handoff: "Call centre, English"
+regulatory_notes_ref: docs/regulatory.md#singapore

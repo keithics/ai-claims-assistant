@@ -1,0 +1,20 @@
+<policies>
+  <inbound>
+%{ if restrict_to_cloudflare ~}
+    <ip-filter action="allow">
+      ${cloudflare_ips}
+%{ for address in extra_allowed_addresses ~}
+      <address>${address}</address>
+%{ endfor ~}
+    </ip-filter>
+%{ endif ~}
+%{ for header in personal_data_headers ~}
+    <set-header name="${header}" exists-action="delete" />
+%{ endfor ~}
+  </inbound>
+  <backend>
+    <forward-request />
+  </backend>
+  <outbound />
+  <on-error />
+</policies>

@@ -1,0 +1,22 @@
+<!--
+  Cloudflare edge IPv4 ranges. Fragment only, no ip-filter wrapper: every entry
+  must sit in the same allow filter (service.xml.tftpl) to OR together, and a
+  second filter would AND with it.
+  Source: https://www.cloudflare.com/ips-v4, checked 2026-10-25.
+  IPv4 only: APIM has no IPv6 listener. Refresh this file when Cloudflare changes the list.
+-->
+<address-range from="173.245.48.0" to="173.245.63.255" />
+<address-range from="103.21.244.0" to="103.21.247.255" />
+<address-range from="103.22.200.0" to="103.22.203.255" />
+<address-range from="103.31.4.0" to="103.31.7.255" />
+<address-range from="141.101.64.0" to="141.101.127.255" />
+<address-range from="108.162.192.0" to="108.162.255.255" />
+<address-range from="190.93.240.0" to="190.93.255.255" />
+<address-range from="188.114.96.0" to="188.114.111.255" />
+<address-range from="197.234.240.0" to="197.234.243.255" />
+<address-range from="198.41.128.0" to="198.41.255.255" />
+<address-range from="162.158.0.0" to="162.159.255.255" />
+<address-range from="104.16.0.0" to="104.23.255.255" />
+<address-range from="104.24.0.0" to="104.27.255.255" />
+<address-range from="172.64.0.0" to="172.71.255.255" />
+<address-range from="131.0.72.0" to="131.0.75.255" />

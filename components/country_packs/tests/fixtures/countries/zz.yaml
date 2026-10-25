@@ -1,0 +1,12 @@
+code: zz
+name: Fixtureland
+languages: [en]
+azure_region: southeastasia
+deployment_type: regional
+allowed_model_tiers: [small]
+search_filter: "country eq 'zz'"
+log_prompts: false
+retention_days: 7
+monthly_budget_usd: 5
+human_handoff: "Nobody, this is a test"
+regulatory_notes_ref: docs/regulatory.md#fixtureland

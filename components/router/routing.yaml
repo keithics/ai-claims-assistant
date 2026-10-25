@@ -1,0 +1,14 @@
+# Single source of routing rules. Starting point written by hand; evals proposes updates in
+# components/evals/results/routing.proposed.yaml and a human copies them here.
+version: 1
+default_tier: small
+deployments:
+  small: [small-a, small-b]
+  large: [large]
+rules: []
+output_limits:
+  faq: {small: 300, large: 3000}
+  country_rule: {small: 300, large: 3000}
+  claim_status: {small: 200, large: 3000}
+  claim_filing: {small: 500, large: 3500}
+  other: {small: 300, large: 3000}

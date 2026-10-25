@@ -1,0 +1,31 @@
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-check
+        name: ruff check
+        entry: uv run ruff check
+        language: system
+        types: [python]
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format --check
+        language: system
+        types: [python]
+      - id: mypy
+        name: mypy
+        entry: uv run mypy components/shared/src components/country_packs/src components/router/src
+        language: system
+        pass_filenames: false
+        types: [python]
+      - id: import-linter
+        name: import-linter
+        entry: uv run lint-imports
+        language: system
+        pass_filenames: false
+        types: [python]
+      - id: web-ui-lint
+        name: web_ui eslint + prettier + tsc
+        entry: pnpm -C components/web_ui lint
+        language: system
+        pass_filenames: false
+        files: ^components/web_ui/

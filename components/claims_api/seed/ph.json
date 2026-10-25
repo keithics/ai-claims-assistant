@@ -1,0 +1,100 @@
+{
+  "claims": [
+    {
+      "claim_id": "PH-1040",
+      "country": "ph",
+      "policy_number": "POL-PH-1207280",
+      "claim_type": "home",
+      "incident_date": "2026-09-03",
+      "description": "Water damage from a burst pipe",
+      "amount_claimed": "8000",
+      "currency": "PHP",
+      "status": "submitted",
+      "last_update": "2026-10-10"
+    },
+    {
+      "claim_id": "PH-1041",
+      "country": "ph",
+      "policy_number": "POL-PH-1207287",
+      "claim_type": "motor",
+      "incident_date": "2026-09-06",
+      "description": "Windscreen cracked by road debris",
+      "amount_claimed": "15000",
+      "currency": "PHP",
+      "status": "under_review",
+      "last_update": "2026-10-11"
+    },
+    {
+      "claim_id": "PH-1042",
+      "country": "ph",
+      "policy_number": "POL-PH-1207294",
+      "claim_type": "health",
+      "incident_date": "2026-09-09",
+      "description": "Outpatient surgery for appendicitis follow-up",
+      "amount_claimed": "22000",
+      "currency": "PHP",
+      "status": "under_review",
+      "last_update": "2026-10-12"
+    },
+    {
+      "claim_id": "PH-1043",
+      "country": "ph",
+      "policy_number": "POL-PH-1207301",
+      "claim_type": "home",
+      "incident_date": "2026-09-12",
+      "description": "Water damage from a burst pipe",
+      "amount_claimed": "40000",
+      "currency": "PHP",
+      "status": "approved",
+      "last_update": "2026-10-13"
+    },
+    {
+      "claim_id": "PH-1044",
+      "country": "ph",
+      "policy_number": "POL-PH-1207308",
+      "claim_type": "motor",
+      "incident_date": "2026-10-15",
+      "description": "Windscreen cracked by road debris",
+      "amount_claimed": "65000",
+      "currency": "PHP",
+      "status": "paid",
+      "last_update": "2026-10-14"
+    },
+    {
+      "claim_id": "PH-1045",
+      "country": "ph",
+      "policy_number": "POL-PH-1207315",
+      "claim_type": "health",
+      "incident_date": "2026-10-18",
+      "description": "Outpatient surgery for appendicitis follow-up",
+      "amount_claimed": "9000",
+      "currency": "PHP",
+      "status": "rejected",
+      "last_update": "2026-10-15"
+    },
+    {
+      "claim_id": "PH-1046",
+      "country": "ph",
+      "policy_number": "POL-PH-1207322",
+      "claim_type": "home",
+      "incident_date": "2026-10-21",
+      "description": "Water damage from a burst pipe",
+      "amount_claimed": "31000",
+      "currency": "PHP",
+      "status": "submitted",
+      "last_update": "2026-10-16"
+    },
+    {
+      "claim_id": "PH-1047",
+      "country": "ph",
+      "policy_number": "POL-PH-1207329",
+      "claim_type": "motor",
+      "incident_date": "2026-10-24",
+      "description": "Windscreen cracked by road debris",
+      "amount_claimed": "52000",
+      "currency": "PHP",
+      "status": "approved",
+      "last_update": "2026-10-17"
+    }
+  ]
+}

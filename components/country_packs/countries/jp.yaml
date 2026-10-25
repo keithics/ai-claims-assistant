@@ -1,0 +1,12 @@
+code: jp
+name: Japan
+languages: [ja, en]
+azure_region: japaneast
+deployment_type: regional
+allowed_model_tiers: [small, large]
+search_filter: "country eq 'jp'"
+log_prompts: false
+retention_days: 30
+monthly_budget_usd: 10
+human_handoff: "Call centre, Japanese and English"
+regulatory_notes_ref: docs/regulatory.md#japan

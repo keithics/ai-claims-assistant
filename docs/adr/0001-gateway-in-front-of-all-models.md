@@ -1,0 +1,46 @@
+# ADR-001: Gateway in front of all models, and the API Management tier
+
+Status: accepted (2026-10-25)
+
+## Context
+
+Every model call, embedding call and claims API call needs the same controls: a token limit per country, token metrics with dimensions (country, app, model, route tier), failover when a deployment returns 429, and no personal data in forwarded headers. Doing that in each app would mean five copies of the logic and no single place to turn a country off. There is also no user sign-in, so the only things between the internet and spendable tokens are Cloudflare Access, an IP filter and per-country keys.
+
+## Options
+
+1. **Apps call the model endpoints directly.** Cheapest. No shared limits, no failover, per-app metrics only, and every app holds model access.
+2. **Azure API Management in front of everything.** One place for limits, metrics, failover and header hygiene. Costs a fixed monthly fee.
+3. **A small custom proxy in Container Apps.** Cheap, but we would write and maintain token counting, retry and pooling ourselves.
+
+Tiers of option 2 (policy support checked in the APIM docs on 2026-10-25):
+
+| Tier | llm-token-limit | llm-emit-token-metric | Semantic cache | Backend pool and circuit breaker | Notes |
+|------|-----------------|-----------------------|----------------|----------------------------------|-------|
+| Consumption | no | yes | yes | circuit breaker no | Nearly free, but cannot enforce per-country token limits |
+| Developer | yes | yes | yes | yes | No SLA, slow to create (30 to 45 minutes), single unit |
+| Basic v2 | yes | yes | yes | yes | Has an SLA, creates in minutes, costs several times Developer |
+| Standard v2 and up | yes | yes | yes | yes | Production features we do not need |
+
+## Decision
+
+Use API Management (option 2) on the **Developer** tier, with the tier as a variable (`apim_sku`, validated to refuse Consumption). Developer is the cheapest tier that has `llm-token-limit`, which is the M3 acceptance test. Its price (roughly $50 per month; my estimate, confirm on the Azure pricing page) is about the whole dev budget, so:
+
+- `enable_apim` is `false` by default in `envs/dev`.
+- Apply it for a test window, run the load test, then `make destroy` or set the flag back to `false`.
+- The $50 budget alert and the budget controller stay the real brake; they alert, they do not stop spend.
+
+Other choices recorded here:
+
+- Models are behind three APIs: `small` (a pool of the two small deployments, round robin, each with a circuit breaker on 429 that honours Retry-After), `large` and `embeddings`.
+- One product and subscription per country carry that country's token limit. A request whose `x-country` differs from its subscription's country gets 403. Keys are written to Key Vault, never to outputs.
+- The claims API is a separate product, rate limited per subscription, with no cache and no token policies.
+- Access: one service-level `ip-filter` with Cloudflare's IPv4 ranges (same pattern as `sqai-alz`), plus a country subscription key on every call. Callers that do not come through Cloudflare must be added to `apim_extra_allowed_addresses` or routed through Cloudflare.
+- The semantic cache stays off (it needs an external cache, which is an M6 lever). When on, it only runs for `x-intent: faq` and is partitioned by country.
+
+## Consequences
+
+- One fixed cost that is as large as the budget. Leaving the gateway up between sessions will trigger the 80% and 100% alerts.
+- Developer has no SLA, so a gateway outage stops every model call. Fine for a prototype, not for production; Basic v2 or Standard v2 would be the next step.
+- `llm-token-limit` counts per gateway instance; a single Developer unit means the limit is exact, but a scale-out would make it approximate.
+- The `Backend ID` metric dimension, the `new[] {...}.Contains` expressions and the `llm-*` element syntax are validated by API Management only at apply time. The first apply is the real test of the policies.
+- The apps still need to be changed to call the gateway with their country key (F-033). Until then `allow_direct_model_endpoint` stays true.

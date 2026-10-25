@@ -1,0 +1,31 @@
+<policies>
+  <inbound>
+    <base />
+    <set-variable name="country" value="@{ var v = context.Request.Headers.GetValueOrDefault("x-country", "").Trim().ToLowerInvariant(); return new[] { %{ for item in allowed_countries ~}"${item}", %{ endfor ~}}.Contains(v) ? v : "unknown"; }" />
+    <choose>
+      <when condition="@((string)context.Variables["country"] == "unknown")">
+        <return-response>
+          <set-status code="400" reason="Bad Request" />
+          <set-header name="Content-Type" exists-action="override">
+            <value>application/json</value>
+          </set-header>
+          <set-body>{"error":"x-country is missing or not a supported market"}</set-body>
+        </return-response>
+      </when>
+    </choose>
+    <set-header name="x-country" exists-action="override">
+      <value>@((string)context.Variables["country"])</value>
+    </set-header>
+    <rate-limit-by-key calls="${calls_per_minute}" renewal-period="60" counter-key="@(context.Subscription.Id)" />
+    <set-backend-service backend-id="${claims_backend_id}" />
+  </inbound>
+  <backend>
+    <forward-request />
+  </backend>
+  <outbound>
+    <base />
+  </outbound>
+  <on-error>
+    <base />
+  </on-error>
+</policies>

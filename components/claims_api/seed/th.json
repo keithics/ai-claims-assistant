@@ -1,0 +1,100 @@
+{
+  "claims": [
+    {
+      "claim_id": "TH-1040",
+      "country": "th",
+      "policy_number": "POL-TH-1207280",
+      "claim_type": "home",
+      "incident_date": "2026-09-03",
+      "description": "Water damage from a burst pipe",
+      "amount_claimed": "5200.0",
+      "currency": "THB",
+      "status": "submitted",
+      "last_update": "2026-10-10"
+    },
+    {
+      "claim_id": "TH-1041",
+      "country": "th",
+      "policy_number": "POL-TH-1207287",
+      "claim_type": "motor",
+      "incident_date": "2026-09-06",
+      "description": "Windscreen cracked by road debris",
+      "amount_claimed": "9750.0",
+      "currency": "THB",
+      "status": "under_review",
+      "last_update": "2026-10-11"
+    },
+    {
+      "claim_id": "TH-1042",
+      "country": "th",
+      "policy_number": "POL-TH-1207294",
+      "claim_type": "health",
+      "incident_date": "2026-09-09",
+      "description": "Outpatient surgery for appendicitis follow-up",
+      "amount_claimed": "14300.0",
+      "currency": "THB",
+      "status": "under_review",
+      "last_update": "2026-10-12"
+    },
+    {
+      "claim_id": "TH-1043",
+      "country": "th",
+      "policy_number": "POL-TH-1207301",
+      "claim_type": "home",
+      "incident_date": "2026-09-12",
+      "description": "Water damage from a burst pipe",
+      "amount_claimed": "26000.0",
+      "currency": "THB",
+      "status": "approved",
+      "last_update": "2026-10-13"
+    },
+    {
+      "claim_id": "TH-1044",
+      "country": "th",
+      "policy_number": "POL-TH-1207308",
+      "claim_type": "motor",
+      "incident_date": "2026-10-15",
+      "description": "Windscreen cracked by road debris",
+      "amount_claimed": "42250.0",
+      "currency": "THB",
+      "status": "paid",
+      "last_update": "2026-10-14"
+    },
+    {
+      "claim_id": "TH-1045",
+      "country": "th",
+      "policy_number": "POL-TH-1207315",
+      "claim_type": "health",
+      "incident_date": "2026-10-18",
+      "description": "Outpatient surgery for appendicitis follow-up",
+      "amount_claimed": "5850.0",
+      "currency": "THB",
+      "status": "rejected",
+      "last_update": "2026-10-15"
+    },
+    {
+      "claim_id": "TH-1046",
+      "country": "th",
+      "policy_number": "POL-TH-1207322",
+      "claim_type": "home",
+      "incident_date": "2026-10-21",
+      "description": "Water damage from a burst pipe",
+      "amount_claimed": "20150.0",
+      "currency": "THB",
+      "status": "submitted",
+      "last_update": "2026-10-16"
+    },
+    {
+      "claim_id": "TH-1047",
+      "country": "th",
+      "policy_number": "POL-TH-1207329",
+      "claim_type": "motor",
+      "incident_date": "2026-10-24",
+      "description": "Windscreen cracked by road debris",
+      "amount_claimed": "33800.0",
+      "currency": "THB",
+      "status": "approved",
+      "last_update": "2026-10-17"
+    }
+  ]
+}

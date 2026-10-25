@@ -1,0 +1,100 @@
+{
+  "claims": [
+    {
+      "claim_id": "SG-1040",
+      "country": "sg",
+      "policy_number": "POL-SG-1207280",
+      "claim_type": "home",
+      "incident_date": "2026-09-03",
+      "description": "Water damage from a burst pipe",
+      "amount_claimed": "200.0",
+      "currency": "SGD",
+      "status": "submitted",
+      "last_update": "2026-10-10"
+    },
+    {
+      "claim_id": "SG-1041",
+      "country": "sg",
+      "policy_number": "POL-SG-1207287",
+      "claim_type": "motor",
+      "incident_date": "2026-09-06",
+      "description": "Windscreen cracked by road debris",
+      "amount_claimed": "375.0",
+      "currency": "SGD",
+      "status": "under_review",
+      "last_update": "2026-10-11"
+    },
+    {
+      "claim_id": "SG-1042",
+      "country": "sg",
+      "policy_number": "POL-SG-1207294",
+      "claim_type": "health",
+      "incident_date": "2026-09-09",
+      "description": "Outpatient surgery for appendicitis follow-up",
+      "amount_claimed": "550.0",
+      "currency": "SGD",
+      "status": "under_review",
+      "last_update": "2026-10-12"
+    },
+    {
+      "claim_id": "SG-1043",
+      "country": "sg",
+      "policy_number": "POL-SG-1207301",
+      "claim_type": "home",
+      "incident_date": "2026-09-12",
+      "description": "Water damage from a burst pipe",
+      "amount_claimed": "1000.0",
+      "currency": "SGD",
+      "status": "approved",
+      "last_update": "2026-10-13"
+    },
+    {
+      "claim_id": "SG-1044",
+      "country": "sg",
+      "policy_number": "POL-SG-1207308",
+      "claim_type": "motor",
+      "incident_date": "2026-10-15",
+      "description": "Windscreen cracked by road debris",
+      "amount_claimed": "1625.0",
+      "currency": "SGD",
+      "status": "paid",
+      "last_update": "2026-10-14"
+    },
+    {
+      "claim_id": "SG-1045",
+      "country": "sg",
+      "policy_number": "POL-SG-1207315",
+      "claim_type": "health",
+      "incident_date": "2026-10-18",
+      "description": "Outpatient surgery for appendicitis follow-up",
+      "amount_claimed": "225.0",
+      "currency": "SGD",
+      "status": "rejected",
+      "last_update": "2026-10-15"
+    },
+    {
+      "claim_id": "SG-1046",
+      "country": "sg",
+      "policy_number": "POL-SG-1207322",
+      "claim_type": "home",
+      "incident_date": "2026-10-21",
+      "description": "Water damage from a burst pipe",
+      "amount_claimed": "775.0",
+      "currency": "SGD",
+      "status": "submitted",
+      "last_update": "2026-10-16"
+    },
+    {
+      "claim_id": "SG-1047",
+      "country": "sg",
+      "policy_number": "POL-SG-1207329",
+      "claim_type": "motor",
+      "incident_date": "2026-10-24",
+      "description": "Windscreen cracked by road debris",
+      "amount_claimed": "1300.0",
+      "currency": "SGD",
+      "status": "approved",
+      "last_update": "2026-10-17"
+    }
+  ]
+}

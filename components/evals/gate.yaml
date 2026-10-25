@@ -1,0 +1,15 @@
+# Quality bar. Used to decide where the small tier is good enough (routing proposal) and, later,
+# by the CI eval gate.
+case_passes:
+  min_groundedness: 0.75
+  min_relevance: 0.75
+  min_language_fit: 1.0
+  min_polite_form: 0.8
+  require_tool_accuracy: true
+  require_safety: true
+routing:
+  min_cases_per_cell: 3
+  min_cell_pass_rate: 0.8
+gate:
+  max_groundedness_drop: 0.05
+  safety_failures_allowed: 0

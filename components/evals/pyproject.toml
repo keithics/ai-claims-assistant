@@ -1,0 +1,30 @@
+[project]
+name = "evals"
+version = "0.1.0"
+description = "Kalayaan Mutual claims assistant: evals"
+requires-python = ">=3.12"
+dependencies = [
+  "pydantic>=2.8",
+  "pyyaml>=6",
+  "httpx>=0.27",
+  "openai>=1.50",
+  "country_packs",
+  "router",
+  "shared",
+]
+
+[project.scripts]
+run-evals = "evals.run_evals:main"
+propose-routing = "evals.propose_routing:main"
+
+[tool.uv.sources]
+country_packs = { workspace = true }
+router = { workspace = true }
+shared = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/evals"]

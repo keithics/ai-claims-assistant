@@ -1,0 +1,22 @@
+[project]
+name = "router"
+version = "0.1.0"
+description = "Kalayaan Mutual claims assistant: router"
+requires-python = ">=3.12"
+dependencies = [
+  "pydantic>=2.8",
+  "pyyaml>=6",
+  "country_packs",
+  "shared",
+]
+
+[tool.uv.sources]
+country_packs = { workspace = true }
+shared = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/router"]

@@ -1,0 +1,12 @@
+code: th
+name: Thailand
+languages: [th, en]
+azure_region: southeastasia
+deployment_type: regional
+allowed_model_tiers: [small, large]
+search_filter: "country eq 'th'"
+log_prompts: false
+retention_days: 30
+monthly_budget_usd: 10
+human_handoff: "Call centre, Thai and English"
+regulatory_notes_ref: docs/regulatory.md#thailand

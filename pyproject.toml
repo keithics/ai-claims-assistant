@@ -1,0 +1,156 @@
+[project]
+name = "kalayaan-mutual"
+version = "0.1.0"
+description = "Multilingual insurance claims assistant for a fictional insurer, built to optimize LLM cost"
+requires-python = ">=3.12"
+dependencies = []
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["components/*"]
+exclude = ["components/web_ui", "components/gateway"]
+
+[dependency-groups]
+dev = [
+  "pytest>=8",
+  "pytest-cov>=5",
+  "ruff>=0.6",
+  "mypy>=1.11",
+  "import-linter>=2",
+  "pre-commit>=3",
+  "types-pyyaml>=6",
+  "httpx>=0.27",
+]
+
+[tool.pytest.ini_options]
+addopts = "--import-mode=importlib"
+pythonpath = ["components/agent_app/tests"]
+testpaths = ["components", "tests"]
+markers = ["integration: needs a deployed environment"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["components/web_ui"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM"]
+
+[tool.mypy]
+python_version = "3.12"
+explicit_package_bases = true
+mypy_path = [
+  "components/shared/src",
+  "components/country_packs/src",
+  "components/router/src",
+  "components/telemetry/src",
+  "components/rag/src",
+  "components/claims_api/src",
+  "components/agent_app/src",
+  "components/evals/src",
+  "components/budget_controller/src",
+]
+warn_unused_ignores = true
+warn_redundant_casts = true
+
+[[tool.mypy.overrides]]
+module = ["shared", "shared.*", "router", "router.*", "country_packs", "country_packs.*"]
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+disallow_untyped_calls = true
+disallow_untyped_decorators = true
+disallow_any_generics = true
+check_untyped_defs = true
+no_implicit_optional = true
+no_implicit_reexport = true
+warn_return_any = true
+strict_equality = true
+
+[tool.importlinter]
+root_packages = [
+  "shared",
+  "country_packs",
+  "router",
+  "telemetry",
+  "rag",
+  "claims_api",
+  "agent_app",
+  "evals",
+  "budget_controller",
+]
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "shared depends on nothing in the repo"
+type = "forbidden"
+source_modules = ["shared"]
+forbidden_modules = ["country_packs", "router", "telemetry", "rag", "claims_api", "agent_app", "evals", "budget_controller"]
+
+[[tool.importlinter.contracts]]
+name = "country_packs may depend on shared only"
+type = "forbidden"
+source_modules = ["country_packs"]
+forbidden_modules = ["router", "telemetry", "rag", "claims_api", "agent_app", "evals", "budget_controller"]
+
+[[tool.importlinter.contracts]]
+name = "router may depend on shared and country_packs only"
+type = "forbidden"
+source_modules = ["router"]
+forbidden_modules = ["telemetry", "rag", "claims_api", "agent_app", "evals", "budget_controller"]
+
+[[tool.importlinter.contracts]]
+name = "router does no I/O"
+type = "forbidden"
+source_modules = ["router"]
+forbidden_modules = ["openai", "httpx", "requests", "aiohttp", "azure", "socket"]
+
+[[tool.importlinter.contracts]]
+name = "telemetry may depend on shared only"
+type = "forbidden"
+source_modules = ["telemetry"]
+forbidden_modules = ["country_packs", "router", "rag", "claims_api", "agent_app", "evals", "budget_controller"]
+
+[[tool.importlinter.contracts]]
+name = "rag must not depend on agent_app or other components"
+type = "forbidden"
+source_modules = ["rag"]
+forbidden_modules = ["router", "claims_api", "agent_app", "evals", "budget_controller"]
+
+[[tool.importlinter.contracts]]
+name = "claims_api plays an external system and depends on shared only"
+type = "forbidden"
+source_modules = ["claims_api"]
+forbidden_modules = ["country_packs", "router", "telemetry", "rag", "agent_app", "evals", "budget_controller"]
+
+[[tool.importlinter.contracts]]
+name = "agent_app must not depend on claims_api, evals or budget_controller"
+type = "forbidden"
+source_modules = ["agent_app"]
+forbidden_modules = ["claims_api", "evals", "budget_controller"]
+
+[[tool.importlinter.contracts]]
+name = "evals may depend on shared, country_packs and router only"
+type = "forbidden"
+source_modules = ["evals"]
+forbidden_modules = ["telemetry", "rag", "claims_api", "agent_app", "budget_controller"]
+
+[[tool.importlinter.contracts]]
+name = "budget_controller may depend on shared, country_packs and telemetry only"
+type = "forbidden"
+source_modules = ["budget_controller"]
+forbidden_modules = ["router", "rag", "claims_api", "agent_app", "evals"]
+
+[tool.ruff.lint.isort]
+known-first-party = [
+  "shared",
+  "country_packs",
+  "router",
+  "telemetry",
+  "rag",
+  "claims_api",
+  "agent_app",
+  "evals",
+  "budget_controller",
+]

@@ -1,0 +1,100 @@
+{
+  "claims": [
+    {
+      "claim_id": "ID-1040",
+      "country": "id",
+      "policy_number": "POL-ID-1207280",
+      "claim_type": "home",
+      "incident_date": "2026-09-03",
+      "description": "Water damage from a burst pipe",
+      "amount_claimed": "2240000",
+      "currency": "IDR",
+      "status": "submitted",
+      "last_update": "2026-10-10"
+    },
+    {
+      "claim_id": "ID-1041",
+      "country": "id",
+      "policy_number": "POL-ID-1207287",
+      "claim_type": "motor",
+      "incident_date": "2026-09-06",
+      "description": "Windscreen cracked by road debris",
+      "amount_claimed": "4200000",
+      "currency": "IDR",
+      "status": "under_review",
+      "last_update": "2026-10-11"
+    },
+    {
+      "claim_id": "ID-1042",
+      "country": "id",
+      "policy_number": "POL-ID-1207294",
+      "claim_type": "health",
+      "incident_date": "2026-09-09",
+      "description": "Outpatient surgery for appendicitis follow-up",
+      "amount_claimed": "6160000",
+      "currency": "IDR",
+      "status": "under_review",
+      "last_update": "2026-10-12"
+    },
+    {
+      "claim_id": "ID-1043",
+      "country": "id",
+      "policy_number": "POL-ID-1207301",
+      "claim_type": "home",
+      "incident_date": "2026-09-12",
+      "description": "Water damage from a burst pipe",
+      "amount_claimed": "11200000",
+      "currency": "IDR",
+      "status": "approved",
+      "last_update": "2026-10-13"
+    },
+    {
+      "claim_id": "ID-1044",
+      "country": "id",
+      "policy_number": "POL-ID-1207308",
+      "claim_type": "motor",
+      "incident_date": "2026-10-15",
+      "description": "Windscreen cracked by road debris",
+      "amount_claimed": "18200000",
+      "currency": "IDR",
+      "status": "paid",
+      "last_update": "2026-10-14"
+    },
+    {
+      "claim_id": "ID-1045",
+      "country": "id",
+      "policy_number": "POL-ID-1207315",
+      "claim_type": "health",
+      "incident_date": "2026-10-18",
+      "description": "Outpatient surgery for appendicitis follow-up",
+      "amount_claimed": "2520000",
+      "currency": "IDR",
+      "status": "rejected",
+      "last_update": "2026-10-15"
+    },
+    {
+      "claim_id": "ID-1046",
+      "country": "id",
+      "policy_number": "POL-ID-1207322",
+      "claim_type": "home",
+      "incident_date": "2026-10-21",
+      "description": "Water damage from a burst pipe",
+      "amount_claimed": "8680000",
+      "currency": "IDR",
+      "status": "submitted",
+      "last_update": "2026-10-16"
+    },
+    {
+      "claim_id": "ID-1047",
+      "country": "id",
+      "policy_number": "POL-ID-1207329",
+      "claim_type": "motor",
+      "incident_date": "2026-10-24",
+      "description": "Windscreen cracked by road debris",
+      "amount_claimed": "14560000",
+      "currency": "IDR",
+      "status": "approved",
+      "last_update": "2026-10-17"
+    }
+  ]
+}

@@ -1,0 +1,51 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  python-and-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: components/web_ui/pnpm-lock.yaml
+      - uses: hashicorp/setup-terraform@v3
+      - run: make setup
+      - run: make lint
+      - run: make test
+      - run: pnpm -C components/web_ui build
+
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - name: fmt, init and validate every module and env
+        run: |
+          set -euo pipefail
+          terraform fmt -check -recursive infra
+          found=0
+          for dir in infra/modules/* infra/envs/* infra/bootstrap; do
+            if ls "$dir"/*.tf >/dev/null 2>&1; then
+              found=1
+              echo "::group::validate $dir"
+              terraform -chdir="$dir" init -backend=false -input=false
+              terraform -chdir="$dir" validate
+              if [ -d "$dir/tests" ]; then terraform -chdir="$dir" test; fi
+              echo "::endgroup::"
+            fi
+          done
+          if [ "$found" = 0 ]; then echo "no terraform code yet, nothing to validate"; fi

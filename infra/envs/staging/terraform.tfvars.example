@@ -1,0 +1,5 @@
+subscription_id     = "00000000-0000-0000-0000-000000000000"
+owner               = "your-name"
+cost_center         = "your-cost-center"
+location            = "southeastasia"
+budget_alert_emails = ["you@example.com"]

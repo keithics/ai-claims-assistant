@@ -1,0 +1,60 @@
+<policies>
+  <inbound>
+    <base />
+    <set-variable name="country" value="@{ var v = context.Request.Headers.GetValueOrDefault("x-country", "").Trim().ToLowerInvariant(); return new[] { %{ for item in allowed_countries ~}"${item}", %{ endfor ~}}.Contains(v) ? v : "unknown"; }" />
+    <set-variable name="app" value="@{ var v = context.Request.Headers.GetValueOrDefault("x-app", "").Trim().ToLowerInvariant(); return new[] { %{ for item in allowed_apps ~}"${item}", %{ endfor ~}}.Contains(v) ? v : "unknown"; }" />
+    <set-variable name="model" value="@{ var v = context.Request.Headers.GetValueOrDefault("x-model", "").Trim().ToLowerInvariant(); return new[] { %{ for item in allowed_models ~}"${item}", %{ endfor ~}}.Contains(v) ? v : "unknown"; }" />
+    <set-variable name="route_tier" value="@{ var v = context.Request.Headers.GetValueOrDefault("x-route-tier", "").Trim().ToLowerInvariant(); return new[] { %{ for item in allowed_route_tiers ~}"${item}", %{ endfor ~}}.Contains(v) ? v : "unknown"; }" />
+    <set-variable name="is_faq" value="@(context.Request.Headers.GetValueOrDefault("x-intent", "").Trim().ToLowerInvariant() == "faq")" />
+    <set-header name="x-country" exists-action="override">
+      <value>@((string)context.Variables["country"])</value>
+    </set-header>
+    <llm-emit-token-metric namespace="${metric_namespace}">
+      <dimension name="country" value="@((string)context.Variables["country"])" />
+      <dimension name="app" value="@((string)context.Variables["app"])" />
+      <dimension name="model" value="@((string)context.Variables["model"])" />
+      <dimension name="route_tier" value="@((string)context.Variables["route_tier"])" />
+      <dimension name="Backend ID" />
+    </llm-emit-token-metric>
+%{ if semantic_cache_enabled ~}
+    <choose>
+      <when condition="@((bool)context.Variables["is_faq"])">
+        <llm-semantic-cache-lookup
+          score-threshold="${semantic_cache_threshold}"
+          embeddings-backend-id="${embeddings_backend_id}"
+          embeddings-backend-auth="system-assigned"
+          ignore-system-messages="true"
+          max-message-count="${semantic_cache_max_messages}">
+          <vary-by>@((string)context.Variables["country"])</vary-by>
+        </llm-semantic-cache-lookup>
+      </when>
+    </choose>
+%{ endif ~}
+    <authentication-managed-identity resource="https://cognitiveservices.azure.com" />
+    <set-backend-service backend-id="${model_backend_id}" />
+  </inbound>
+  <backend>
+    <limit-concurrency key="@((string)context.Variables["country"])" max-count="${max_concurrent_per_country}">
+      <retry
+        condition="@(context.Response.StatusCode == 429 || context.Response.StatusCode == 503)"
+        count="${retry_count}"
+        interval="1"
+        first-fast-retry="true">
+        <forward-request buffer-request-body="true" />
+      </retry>
+    </limit-concurrency>
+  </backend>
+  <outbound>
+    <base />
+%{ if semantic_cache_enabled ~}
+    <choose>
+      <when condition="@((bool)context.Variables["is_faq"] &amp;&amp; context.Response.StatusCode == 200)">
+        <llm-semantic-cache-store duration="${semantic_cache_ttl_seconds}" />
+      </when>
+    </choose>
+%{ endif ~}
+  </outbound>
+  <on-error>
+    <base />
+  </on-error>
+</policies>
