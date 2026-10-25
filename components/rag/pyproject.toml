@@ -10,10 +10,12 @@ dependencies = [
   "pyyaml>=6",
   "country_packs",
   "shared",
+  "telemetry",
 ]
 
 [tool.uv.sources]
 shared = { workspace = true }
+telemetry = { workspace = true }
 country_packs = { workspace = true }
 
 [project.scripts]

@@ -27,6 +27,8 @@ class Settings:
     claims_api_key: str = ""
     allow_tier_override: bool = False
     routing_path: str = ""
+    budget_state_account_url: str = ""
+    budget_state_container: str = "budget-state"
 
     @classmethod
     def from_env(cls, env: Mapping[str, str] | None = None) -> "Settings":
@@ -71,4 +73,6 @@ class Settings:
             allow_tier_override=values.get("AGENT_ALLOW_TIER_OVERRIDE", "").lower()
             in {"1", "true"},
             routing_path=values.get("ROUTING_CONFIG_PATH", ""),
+            budget_state_account_url=values.get("BUDGET_STATE_ACCOUNT_URL", ""),
+            budget_state_container=values.get("BUDGET_STATE_CONTAINER", "budget-state"),
         )

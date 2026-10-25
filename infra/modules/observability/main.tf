@@ -49,6 +49,6 @@ resource "azurerm_application_insights_workbook" "this" {
   resource_group_name = var.resource_group_name
   display_name        = "Claims assistant ${each.key}"
   source_id           = lower(azurerm_application_insights.this.id)
-  data_json           = file(each.value)
+  data_json           = templatefile(each.value, { workspace_id = azurerm_log_analytics_workspace.this.id })
   tags                = var.tags
 }

@@ -1,0 +1,10 @@
+let from_time = ago(30d);
+AppDependencies
+| where TimeGenerated >= from_time and Name == "chat_turn"
+| extend country = tostring(Properties["country"]),
+         tier = tostring(Properties["route_tier"])
+| summarize turns = count(),
+            p50_ms = percentile(DurationMs, 50),
+            p95_ms = percentile(DurationMs, 95)
+          by country, tier
+| order by country asc, tier asc

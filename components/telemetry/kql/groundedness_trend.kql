@@ -1,0 +1,11 @@
+// Evaluation summaries are pushed as custom events by tools/push_eval_summary.py.
+let from_time = ago(90d);
+AppEvents
+| where TimeGenerated >= from_time and Name == "eval_summary"
+| extend language = tostring(Properties["language"]),
+         model = tostring(Properties["model"]),
+         groundedness = todouble(Properties["groundedness"]),
+         relevance = todouble(Properties["relevance"])
+| summarize groundedness = avg(groundedness), relevance = avg(relevance)
+          by bin(TimeGenerated, 1d), language, model
+| order by TimeGenerated asc

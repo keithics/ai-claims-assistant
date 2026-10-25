@@ -58,13 +58,13 @@ variable "local_authentication_enabled" {
 
 variable "enable_workbook" {
   type        = bool
-  description = "Deploy the dashboard workbook. Off until the workbook template exists (F-042)."
+  description = "Deploy the dashboard workbook (four tabs: executive, cost, engineering, quality)."
   default     = false
 }
 
 variable "workbook_template_path" {
   type        = string
-  description = "Path to the workbook JSON template, passed in by the env. Required when enable_workbook is true."
+  description = "Path to the workbook template (components/telemetry/workbook/dashboard.workbook.json), passed in by the env. It may use $${workspace_id}, which is replaced with the Log Analytics workspace ID. Required when enable_workbook is true."
   default     = null
 
   validation {

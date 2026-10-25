@@ -164,3 +164,21 @@ variable "apim_claims_api_url" {
   description = "Base URL the gateway uses for the claims API. Null leaves the claims API out of the gateway."
   default     = null
 }
+
+variable "enable_workbook" {
+  type        = bool
+  description = "Deploy the dashboard workbook into Application Insights."
+  default     = true
+}
+
+variable "enable_budget_function" {
+  type        = bool
+  description = "Create the budget controller function and its alert. Needs a code package to do anything (make package-budget)."
+  default     = false
+}
+
+variable "budget_function_package" {
+  type        = string
+  description = "Path to the zip from make package-budget. Null leaves code deployment to a human."
+  default     = null
+}

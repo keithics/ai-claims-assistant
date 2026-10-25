@@ -1,4 +1,16 @@
-mock_provider "azurerm" {}
+mock_provider "azurerm" {
+  mock_resource "azurerm_log_analytics_workspace" {
+    defaults = {
+      id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.OperationalInsights/workspaces/log-test"
+    }
+  }
+
+  mock_resource "azurerm_application_insights" {
+    defaults = {
+      id = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg-test/providers/Microsoft.Insights/components/appi-test"
+    }
+  }
+}
 
 variables {
   name_prefix         = "claims-assistant-dev"
@@ -53,6 +65,25 @@ run "workbook_needs_a_template_path" {
   }
 
   expect_failures = [var.workbook_template_path]
+}
+
+run "workbook_renders_from_the_real_template_with_the_workspace_id" {
+  command = apply
+
+  variables {
+    enable_workbook        = true
+    workbook_template_path = "../../../components/telemetry/workbook/dashboard.workbook.json"
+  }
+
+  assert {
+    condition     = length(azurerm_application_insights_workbook.this) == 1 && !strcontains(azurerm_application_insights_workbook.this["dashboard"].data_json, "$${workspace_id}") && strcontains(azurerm_application_insights_workbook.this["dashboard"].data_json, azurerm_log_analytics_workspace.this.id)
+    error_message = "the workbook template should have the workspace id filled in"
+  }
+
+  assert {
+    condition     = length(jsondecode(azurerm_application_insights_workbook.this["dashboard"].data_json).items) == 6
+    error_message = "expected parameters, tabs and four view groups"
+  }
 }
 
 run "rejects_empty_emails" {

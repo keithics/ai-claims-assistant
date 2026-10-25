@@ -1,0 +1,18 @@
+// A conversation counts as resolved when it has at least one answered turn and no model error.
+let from_time = ago(30d);
+AppDependencies
+| where TimeGenerated >= from_time and Name == "chat_turn"
+| extend country = tostring(Properties["country"]),
+         conversation_id = tostring(Properties["conversation_id"]),
+         outcome = tostring(Properties["outcome"]),
+         cost_usd = todouble(Properties["cost_usd"])
+| summarize cost_usd = sum(cost_usd),
+            answered = countif(outcome == "answered"),
+            failed = countif(outcome == "model_error")
+          by country, conversation_id
+| where answered > 0 and failed == 0
+| summarize resolved_conversations = count(),
+            total_cost_usd = sum(cost_usd),
+            cost_per_resolved_conversation_usd = sum(cost_usd) / count()
+          by country
+| order by country asc

@@ -1,0 +1,9 @@
+// cache_hit is false on every turn until the semantic cache lever is switched on.
+let from_time = ago(30d);
+AppDependencies
+| where TimeGenerated >= from_time and Name == "chat_turn"
+| extend country = tostring(Properties["country"]),
+         cache_hit = tostring(Properties["cache_hit"]) == "True"
+| summarize turns = count(), cache_hits = countif(cache_hit) by country
+| extend cache_hit_rate = todouble(cache_hits) / turns
+| order by country asc

@@ -40,6 +40,9 @@ module "observability" {
   action_group_emails = var.budget_alert_emails
   retention_days      = var.log_retention_days
   daily_cap_gb        = var.daily_cap_gb
+
+  enable_workbook        = var.enable_workbook
+  workbook_template_path = "${path.module}/../../../components/telemetry/workbook/dashboard.workbook.json"
 }
 
 data "azurerm_client_config" "current" {}
@@ -167,6 +170,8 @@ module "container_apps" {
   gateway_key_secret_ids           = try(module.apim_gateway["main"].models_key_secret_ids, {})
   claims_api_url                   = var.apim_claims_api_url == null ? null : try(module.apim_gateway["main"].api_paths.claims, null)
   claims_key_secret_id             = try(module.apim_gateway["main"].claims_key_secret_id, null)
+  budget_state_account_url         = trimsuffix(module.storage.blob_endpoint, "/")
+  budget_state_storage_id          = module.storage.id
   search_endpoint                  = module.ai_search.endpoint
   allowed_ip_ranges                = var.allowed_ip_ranges
   acknowledge_unrestricted_ingress = var.acknowledge_unrestricted_ingress
@@ -200,4 +205,33 @@ module "apim_gateway" {
   extra_allowed_addresses                = var.apim_extra_allowed_addresses
 
   depends_on = [module.keyvault]
+}
+
+locals {
+  budget_function = var.enable_budget_function ? { main = true } : {}
+}
+
+module "function_budget" {
+  source   = "../../modules/function_budget"
+  for_each = local.budget_function
+
+  name_prefix                            = module.naming.name_prefix
+  location                               = var.location
+  resource_group_name                    = azurerm_resource_group.main.name
+  tags                                   = module.naming.tags
+  storage_account_id                     = module.storage.id
+  storage_account_name                   = module.storage.name
+  storage_blob_endpoint                  = module.storage.blob_endpoint
+  log_analytics_workspace_id             = module.observability.log_analytics_workspace_id
+  log_analytics_workspace_guid           = module.observability.log_analytics_workspace_guid
+  application_insights_id                = module.observability.application_insights_id
+  application_insights_connection_string = module.observability.application_insights_connection_string
+  action_group_id                        = module.observability.action_group_id
+  package_path                           = var.budget_function_package
+}
+
+resource "azurerm_role_assignment" "deployer_telemetry" {
+  scope                = module.observability.application_insights_id
+  role_definition_name = "Monitoring Metrics Publisher"
+  principal_id         = data.azurerm_client_config.current.object_id
 }

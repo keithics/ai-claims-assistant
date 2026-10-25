@@ -138,3 +138,15 @@ variable "memory" {
   description = "Memory per container."
   default     = "0.5Gi"
 }
+
+variable "budget_state_account_url" {
+  type        = string
+  description = "Blob endpoint of the storage account that holds the budget state. agent_app reads it with Storage Blob Data Reader."
+  default     = ""
+}
+
+variable "budget_state_storage_id" {
+  type        = string
+  description = "Resource ID of the storage account that holds the budget state. When set, agent_app gets Storage Blob Data Reader on it."
+  default     = ""
+}

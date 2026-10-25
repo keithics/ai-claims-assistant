@@ -5,6 +5,7 @@ from agent_app.i18n import CANNOT_FINISH
 from agent_app.llm import ChatClient, Completion, Message, assistant_message
 from agent_app.tools import TOOL_SPECS, ToolContext, canonical_key, execute
 from rag import RetrievedChunk
+from telemetry import CONTENT_ATTRIBUTE, llm_call, mark_error, record_usage
 
 Outcome = Literal["answered", "loop_capped", "loop_detected", "empty_answer"]
 
@@ -45,6 +46,7 @@ def run_agent(
     ctx: ToolContext,
     max_steps: int,
     max_output_tokens: int,
+    prompt_content: str | None = None,
 ) -> AgentResult:
     conversation = list(messages)
     completions: list[Completion] = []
@@ -57,13 +59,26 @@ def run_agent(
         return AgentResult(answer, outcome, completions, list(ctx.sources), drafts, records)
 
     for _ in range(max_steps):
-        completion = chat.complete(
-            conversation,
-            deployment=deployment,
-            country=ctx.country,
-            max_output_tokens=max_output_tokens,
-            tools=TOOL_SPECS,
-        )
+        with llm_call(deployment=deployment, max_output_tokens=max_output_tokens) as span:
+            if prompt_content is not None:
+                span.set_attribute(CONTENT_ATTRIBUTE, prompt_content)
+            try:
+                completion = chat.complete(
+                    conversation,
+                    deployment=deployment,
+                    country=ctx.country,
+                    max_output_tokens=max_output_tokens,
+                    tools=TOOL_SPECS,
+                )
+            except Exception as exc:
+                mark_error(span, exc)
+                raise
+            record_usage(
+                span,
+                input_tokens=completion.input_tokens,
+                output_tokens=completion.output_tokens,
+                cached_tokens=completion.cached_tokens,
+            )
         completions.append(completion)
         if not completion.tool_calls:
             text = completion.text.strip()

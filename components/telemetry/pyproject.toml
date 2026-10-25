@@ -3,7 +3,16 @@ name = "telemetry"
 version = "0.1.0"
 description = "Kalayaan Mutual claims assistant: telemetry"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+  "opentelemetry-api>=1.27",
+  "opentelemetry-sdk>=1.27",
+  "azure-identity>=1.17",
+  "azure-monitor-opentelemetry>=1.6",
+  "shared",
+]
+
+[tool.uv.sources]
+shared = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]

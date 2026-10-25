@@ -16,8 +16,8 @@ run "locked_down_with_default_containers" {
   }
 
   assert {
-    condition     = length(azurerm_storage_container.this) == 2 && contains(keys(azurerm_storage_container.this), "policies") && contains(keys(azurerm_storage_container.this), "eval-results")
-    error_message = "expected policies and eval-results containers"
+    condition     = length(azurerm_storage_container.this) == 3 && contains(keys(azurerm_storage_container.this), "policies") && contains(keys(azurerm_storage_container.this), "eval-results") && contains(keys(azurerm_storage_container.this), "budget-state")
+    error_message = "expected policies, eval-results and budget-state containers"
   }
 
   assert {

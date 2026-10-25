@@ -1,0 +1,286 @@
+{
+  "version": "Notebook/1.0",
+  "items": [
+    {
+      "type": 9,
+      "content": {
+        "version": "KqlParameterItem/1.0",
+        "parameters": [
+          {
+            "id": "time-range",
+            "version": "KqlParameterItem/1.0",
+            "name": "TimeRange",
+            "label": "Time range",
+            "type": 4,
+            "isRequired": true,
+            "value": {
+              "durationMs": 2592000000
+            }
+          },
+          {
+            "id": "tab",
+            "version": "KqlParameterItem/1.0",
+            "name": "tab",
+            "type": 1,
+            "isHiddenWhenLocked": true,
+            "value": "executive"
+          }
+        ]
+      }
+    },
+    {
+      "type": 11,
+      "content": {
+        "version": "LinkItem/1.0",
+        "style": "tabs",
+        "links": [
+          {
+            "id": "tab-executive",
+            "cellValue": "tab",
+            "linkTarget": "parameter",
+            "linkLabel": "Executive",
+            "subTarget": "executive",
+            "style": "link"
+          },
+          {
+            "id": "tab-cost",
+            "cellValue": "tab",
+            "linkTarget": "parameter",
+            "linkLabel": "Cost",
+            "subTarget": "cost",
+            "style": "link"
+          },
+          {
+            "id": "tab-engineering",
+            "cellValue": "tab",
+            "linkTarget": "parameter",
+            "linkLabel": "Engineering",
+            "subTarget": "engineering",
+            "style": "link"
+          },
+          {
+            "id": "tab-quality",
+            "cellValue": "tab",
+            "linkTarget": "parameter",
+            "linkLabel": "Quality",
+            "subTarget": "quality",
+            "style": "link"
+          }
+        ]
+      }
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "title": "Executive",
+        "items": [
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "let month_start = startofmonth(now());\nAppDependencies\n| where TimeGenerated >= month_start and Name == \"chat_turn\"\n| extend country = tostring(Properties[\"country\"]),\n         cost_usd = todouble(Properties[\"cost_usd\"])\n| summarize spend_usd = sum(cost_usd) by country\n| order by country asc",
+              "size": 0,
+              "title": "Spend this month by country (USD)",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "crossComponentResources": [
+                "${workspace_id}"
+              ],
+              "visualization": "table",
+              "timeContext": {
+                "durationMs": 0
+              },
+              "timeContextFromParameter": "TimeRange"
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "let from_time = {TimeRange:start};\nAppDependencies\n| where TimeGenerated >= from_time and Name == \"chat_turn\"\n| extend country = tostring(Properties[\"country\"]),\n         conversation_id = tostring(Properties[\"conversation_id\"]),\n         outcome = tostring(Properties[\"outcome\"]),\n         cost_usd = todouble(Properties[\"cost_usd\"])\n| summarize cost_usd = sum(cost_usd),\n            answered = countif(outcome == \"answered\"),\n            failed = countif(outcome == \"model_error\")\n          by country, conversation_id\n| where answered > 0 and failed == 0\n| summarize resolved_conversations = count(),\n            total_cost_usd = sum(cost_usd),\n            cost_per_resolved_conversation_usd = sum(cost_usd) / count()\n          by country\n| order by country asc",
+              "size": 0,
+              "title": "Cost per resolved conversation",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "crossComponentResources": [
+                "${workspace_id}"
+              ],
+              "visualization": "table",
+              "timeContext": {
+                "durationMs": 0
+              },
+              "timeContextFromParameter": "TimeRange"
+            }
+          }
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "tab",
+        "comparison": "isEqualTo",
+        "value": "executive"
+      }
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "title": "Cost",
+        "items": [
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "let from_time = {TimeRange:start};\nAppDependencies\n| where TimeGenerated >= from_time and Name == \"chat_turn\"\n| extend country = tostring(Properties[\"country\"]),\n         model = tostring(Properties[\"gen_ai.request.model\"]),\n         input_tokens = tolong(Properties[\"gen_ai.usage.input_tokens\"]),\n         output_tokens = tolong(Properties[\"gen_ai.usage.output_tokens\"])\n| summarize turns = count(),\n            input_tokens = sum(input_tokens),\n            output_tokens = sum(output_tokens)\n          by country, app = AppRoleName, model\n| extend total_tokens = input_tokens + output_tokens\n| order by total_tokens desc",
+              "size": 0,
+              "title": "Tokens by country, app and model",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "crossComponentResources": [
+                "${workspace_id}"
+              ],
+              "visualization": "table",
+              "timeContext": {
+                "durationMs": 0
+              },
+              "timeContextFromParameter": "TimeRange"
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "let from_time = {TimeRange:start};\nAppDependencies\n| where TimeGenerated >= from_time and Name == \"chat_turn\"\n| extend country = tostring(Properties[\"country\"]),\n         cache_hit = tostring(Properties[\"cache_hit\"]) == \"True\"\n| summarize turns = count(), cache_hits = countif(cache_hit) by country\n| extend cache_hit_rate = todouble(cache_hits) / turns\n| order by country asc",
+              "size": 0,
+              "title": "Cache hit rate",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "crossComponentResources": [
+                "${workspace_id}"
+              ],
+              "visualization": "table",
+              "timeContext": {
+                "durationMs": 0
+              },
+              "timeContextFromParameter": "TimeRange"
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "let from_time = {TimeRange:start};\nAppDependencies\n| where TimeGenerated >= from_time and Name == \"chat_turn\"\n| extend country = tostring(Properties[\"country\"]),\n         conversation_id = tostring(Properties[\"conversation_id\"]),\n         outcome = tostring(Properties[\"outcome\"]),\n         cost_usd = todouble(Properties[\"cost_usd\"])\n| summarize cost_usd = sum(cost_usd),\n            answered = countif(outcome == \"answered\"),\n            failed = countif(outcome == \"model_error\")\n          by country, conversation_id\n| where answered > 0 and failed == 0\n| summarize resolved_conversations = count(),\n            total_cost_usd = sum(cost_usd),\n            cost_per_resolved_conversation_usd = sum(cost_usd) / count()\n          by country\n| order by country asc",
+              "size": 0,
+              "title": "Cost per resolved conversation",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "crossComponentResources": [
+                "${workspace_id}"
+              ],
+              "visualization": "table",
+              "timeContext": {
+                "durationMs": 0
+              },
+              "timeContextFromParameter": "TimeRange"
+            }
+          }
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "tab",
+        "comparison": "isEqualTo",
+        "value": "cost"
+      }
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "title": "Engineering",
+        "items": [
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "let from_time = {TimeRange:start};\nAppDependencies\n| where TimeGenerated >= from_time and Name == \"chat_turn\"\n| extend country = tostring(Properties[\"country\"]),\n         tier = tostring(Properties[\"route_tier\"])\n| summarize turns = count(),\n            p50_ms = percentile(DurationMs, 50),\n            p95_ms = percentile(DurationMs, 95)\n          by country, tier\n| order by country asc, tier asc",
+              "size": 0,
+              "title": "Latency p50 and p95 by country and tier",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "crossComponentResources": [
+                "${workspace_id}"
+              ],
+              "visualization": "table",
+              "timeContext": {
+                "durationMs": 0
+              },
+              "timeContextFromParameter": "TimeRange"
+            }
+          },
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "let from_time = {TimeRange:start};\nlet gateway = AppRequests\n    | where TimeGenerated >= from_time and AppRoleName contains \"apim\"\n    | extend country = tostring(Properties[\"country\"])\n    | summarize gateway_requests = count(), gateway_429 = countif(ResultCode == \"429\")\n      by country;\nlet turns = AppDependencies\n    | where TimeGenerated >= from_time and Name == \"chat_turn\"\n    | extend country = tostring(Properties[\"country\"]),\n             fallback_used = tostring(Properties[\"fallback_used\"]) == \"True\"\n    | summarize turns = count(), fallbacks = countif(fallback_used) by country;\nturns\n| join kind=fullouter gateway on country\n| project country = coalesce(country, country1), turns, fallbacks,\n          fallback_rate = iff(turns > 0, todouble(fallbacks) / turns, real(null)),\n          gateway_requests, gateway_429,\n          rate_429 = iff(gateway_requests > 0, todouble(gateway_429) / gateway_requests, real(null))\n| order by country asc",
+              "size": 0,
+              "title": "429s at the gateway and fallbacks in the app",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "crossComponentResources": [
+                "${workspace_id}"
+              ],
+              "visualization": "table",
+              "timeContext": {
+                "durationMs": 0
+              },
+              "timeContextFromParameter": "TimeRange"
+            }
+          }
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "tab",
+        "comparison": "isEqualTo",
+        "value": "engineering"
+      }
+    },
+    {
+      "type": 12,
+      "content": {
+        "version": "NotebookGroup/1.0",
+        "groupType": "editable",
+        "title": "Quality",
+        "items": [
+          {
+            "type": 3,
+            "content": {
+              "version": "KqlItem/1.0",
+              "query": "let from_time = {TimeRange:start};\nAppEvents\n| where TimeGenerated >= from_time and Name == \"eval_summary\"\n| extend language = tostring(Properties[\"language\"]),\n         model = tostring(Properties[\"model\"]),\n         groundedness = todouble(Properties[\"groundedness\"]),\n         relevance = todouble(Properties[\"relevance\"])\n| summarize groundedness = avg(groundedness), relevance = avg(relevance)\n          by bin(TimeGenerated, 1d), language, model\n| order by TimeGenerated asc",
+              "size": 0,
+              "title": "Groundedness and relevance by language",
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces",
+              "crossComponentResources": [
+                "${workspace_id}"
+              ],
+              "visualization": "timechart",
+              "timeContext": {
+                "durationMs": 0
+              },
+              "timeContextFromParameter": "TimeRange"
+            }
+          }
+        ]
+      },
+      "conditionalVisibility": {
+        "parameterName": "tab",
+        "comparison": "isEqualTo",
+        "value": "quality"
+      }
+    }
+  ],
+  "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+}

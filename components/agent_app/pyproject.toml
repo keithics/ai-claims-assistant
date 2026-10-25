@@ -5,6 +5,7 @@ description = "Kalayaan Mutual claims assistant: agent service"
 requires-python = ">=3.12"
 dependencies = [
   "azure-identity>=1.17",
+  "azure-storage-blob>=12.22",
   "country_packs",
   "fastapi>=0.115",
   "httpx>=0.27",
@@ -13,11 +14,13 @@ dependencies = [
   "rag",
   "router",
   "shared",
+  "telemetry",
   "uvicorn>=0.30",
 ]
 
 [tool.uv.sources]
 shared = { workspace = true }
+telemetry = { workspace = true }
 country_packs = { workspace = true }
 rag = { workspace = true }
 router = { workspace = true }

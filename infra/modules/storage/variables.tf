@@ -21,7 +21,7 @@ variable "tags" {
 variable "containers" {
   type        = set(string)
   description = "Private blob containers to create."
-  default     = ["policies", "eval-results"]
+  default     = ["policies", "eval-results", "budget-state"]
 }
 
 variable "replication_type" {

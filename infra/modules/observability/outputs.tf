@@ -3,6 +3,11 @@ output "log_analytics_workspace_id" {
   description = "Log Analytics workspace resource ID."
 }
 
+output "log_analytics_workspace_guid" {
+  value       = azurerm_log_analytics_workspace.this.workspace_id
+  description = "Log Analytics workspace customer ID (GUID), used by query clients."
+}
+
 output "application_insights_id" {
   value       = azurerm_application_insights.this.id
   description = "Application Insights resource ID."

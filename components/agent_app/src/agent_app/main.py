@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.routing import APIRoute
 
 from agent_app.approval import ApprovalError, ApprovalService
+from agent_app.budget import BudgetStateReader, blob_fetcher
 from agent_app.chat import ChatService, RequestError
 from agent_app.config import ConfigError, Settings
 from agent_app.fakes import FAKE_MODE_ENV, build_fake_service
@@ -25,6 +26,8 @@ from agent_app.schemas import (
 from agent_app.tools import ClaimsClient, RestrictedClaims
 from country_packs import load_country_packs, load_model_catalog, prices_from_catalog
 from rag import AzureSearchBackend, OpenAIEmbedder, Retriever, load_policy_documents
+from router import BudgetState
+from telemetry import app_env, configure
 
 
 def build_service(settings: Settings) -> ChatService:
@@ -50,6 +53,7 @@ def build_service(settings: Settings) -> ChatService:
     claims_client = ClaimsClient(settings.claims_api_url, api_key=settings.claims_api_key or None)
     restricted = RestrictedClaims(claims_client)
     return ChatService(
+        env=app_env(),
         packs=packs,
         retriever=retriever,
         chat=GatewayChatClient(
@@ -73,6 +77,15 @@ def build_service(settings: Settings) -> ChatService:
         documents={d.doc_id: d for d in load_policy_documents(packs=packs)},
         routing=load_routing(settings.routing_path, catalog.deployments),
         allow_tier_override=settings.allow_tier_override,
+        budget_state=_budget_state(settings),
+    )
+
+
+def _budget_state(settings: Settings) -> Callable[[str], BudgetState]:
+    if not settings.budget_state_account_url:
+        return lambda country: "ok"
+    return BudgetStateReader(
+        blob_fetcher(settings.budget_state_account_url, settings.budget_state_container)
     )
 
 
@@ -105,6 +118,7 @@ def create_app(
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> Any:
+        configure("agent_app")
         app.state.service = factory()
         yield
 

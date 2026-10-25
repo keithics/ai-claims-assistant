@@ -32,12 +32,16 @@ locals {
     secrets   = { scope = var.key_vault_id, role = "Key Vault Secrets User" }
   }
 
+  budget_roles = var.budget_state_storage_id == "" ? {} : {
+    budget = { scope = var.budget_state_storage_id, role = "Storage Blob Data Reader" }
+  }
+
   claims_roles = {
     secrets = { scope = var.key_vault_id, role = "Key Vault Secrets User" }
   }
 
   role_assignments = merge(
-    { for key, value in local.agent_roles : "agent_app-${key}" => merge(value, { app = "agent_app" }) },
+    { for key, value in merge(local.agent_roles, local.budget_roles) : "agent_app-${key}" => merge(value, { app = "agent_app" }) },
     { for key, value in local.claims_roles : "claims_api-${key}" => merge(value, { app = "claims_api" }) },
   )
 
@@ -161,11 +165,12 @@ resource "azurerm_container_app" "this" {
 
       dynamic "env" {
         for_each = each.key == "agent_app" ? {
-          AGENT_GATEWAY_URL   = var.gateway_url
-          RAG_SEARCH_ENDPOINT = var.search_endpoint
-          CLAIMS_API_URL      = coalesce(var.claims_api_url, local.urls["claims_api"])
-          AGENT_CORS_ORIGINS  = local.urls["web_ui"]
-          AZURE_CLIENT_ID     = azurerm_user_assigned_identity.this["agent_app"].client_id
+          AGENT_GATEWAY_URL        = var.gateway_url
+          RAG_SEARCH_ENDPOINT      = var.search_endpoint
+          CLAIMS_API_URL           = coalesce(var.claims_api_url, local.urls["claims_api"])
+          AGENT_CORS_ORIGINS       = local.urls["web_ui"]
+          BUDGET_STATE_ACCOUNT_URL = var.budget_state_account_url
+          AZURE_CLIENT_ID          = azurerm_user_assigned_identity.this["agent_app"].client_id
         } : {}
 
         content {

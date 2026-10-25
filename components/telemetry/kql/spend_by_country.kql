@@ -1,0 +1,9 @@
+// Month-to-date model spend per country in USD. Used by the budget controller and the
+// spend-vs-budget view; the budget itself comes from the country pack.
+let month_start = startofmonth(now());
+AppDependencies
+| where TimeGenerated >= month_start and Name == "chat_turn"
+| extend country = tostring(Properties["country"]),
+         cost_usd = todouble(Properties["cost_usd"])
+| summarize spend_usd = sum(cost_usd) by country
+| order by country asc

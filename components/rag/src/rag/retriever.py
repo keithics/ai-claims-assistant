@@ -5,6 +5,7 @@ from typing import Any, Protocol
 from country_packs import CountryPack
 from rag.index_schema import language_field
 from rag.ingest import Embedder
+from telemetry import retrieve_span
 
 SELECT_FIELDS = [
     "id",
@@ -82,21 +83,23 @@ class Retriever:
         field = language_field(language) if language else None
         if field:
             search_fields.append(field)
-        rows = self._backend.search(
-            text=query,
-            vector=self._embed([query], country=pack.code)[0],
-            filter=pack.search_filter,
-            top=self.top_k,
-            select=SELECT_FIELDS,
-            search_fields=search_fields,
-        )
-        chunks = [_to_chunk(row) for row in rows]
-        leaked = [c.id for c in chunks if c.country != pack.code]
-        if leaked:
-            raise CountryLeakError(
-                f"search returned chunks from another country than {pack.code!r}: {leaked}"
+        with retrieve_span(country=pack.code, language=language) as span:
+            rows = self._backend.search(
+                text=query,
+                vector=self._embed([query], country=pack.code)[0],
+                filter=pack.search_filter,
+                top=self.top_k,
+                select=SELECT_FIELDS,
+                search_fields=search_fields,
             )
-        return chunks
+            chunks = [_to_chunk(row) for row in rows]
+            span.set_attribute("chunks_returned", len(chunks))
+            leaked = [c.id for c in chunks if c.country != pack.code]
+            if leaked:
+                raise CountryLeakError(
+                    f"search returned chunks from another country than {pack.code!r}: {leaked}"
+                )
+            return chunks
 
 
 def _to_chunk(row: Mapping[str, Any]) -> RetrievedChunk:

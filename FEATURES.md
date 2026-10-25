@@ -322,28 +322,28 @@ Status values: `todo` · `in-progress` · `done` · `blocked`.
 ### F-041 · Tracing
 - **Component:** `components/telemetry`, `components/agent_app`, `components/rag`
 - **Depends on:** F-039
-- **Status:** todo
+- **Status:** done
 - **Build:** OpenTelemetry setup exporting to Application Insights; span helpers; the trace shape and attributes from `AGENTS.md`; prompts and completions never logged outside dev, and only redacted in dev.
 - **Done when:** tests with an in-memory exporter check span names, attributes and that no raw prompt appears outside dev.
 
 ### F-042 · KQL queries and dashboard
 - **Component:** `components/telemetry/kql`, `components/telemetry/workbook`, `infra/modules/observability`
 - **Depends on:** F-041
-- **Status:** todo
+- **Status:** done
 - **Build:** queries for cost per resolved conversation by country, tokens by country/app/model, cache hit rate, p95 latency, 429 and fallback rates, groundedness trend by language, spend vs budget. Workbook with four views (executive, cost, engineering, quality) loaded by the observability module.
 - **Done when:** each query has a sample-data test or a documented manual check; workbook deploys via `make plan`/approved apply.
 
 ### F-043 · Budget controller
 - **Component:** `components/budget_controller`
 - **Depends on:** F-012, F-042
-- **Status:** todo
+- **Status:** done
 - **Build:** Azure Function, timer every 15 minutes; reads spend per country with `spend_by_country.kql`; writes `ok|warn|exceeded` per country to the chosen store (record the choice in an ADR); alerts on state change. Core logic in a plain module.
 - **Done when:** unit tests for thresholds, idempotency and state-change-only alerts.
 
 ### F-044 · Budget controller infrastructure and wiring
 - **Component:** `infra/modules/function_budget`, `components/agent_app`
 - **Depends on:** F-043
-- **Status:** todo
+- **Status:** in-progress
 - **Build:** function app (cheapest plan that supports managed identity), identity with read access to Log Analytics and write access to the state store; agent app reads budget state and passes it to the router.
 - **Done when:** forcing a country over budget (low budget in a test pack) downgrades it and sends an alert.
 

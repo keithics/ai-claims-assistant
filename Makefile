@@ -6,7 +6,7 @@ PY_SRC := $(filter-out $(WEB)/src,$(wildcard components/*/src))
 MYPY_PATHS := components/shared/src components/country_packs/src components/router/src
 .DEFAULT_GOAL := help
 
-.PHONY: help setup lint test test-int build plan apply destroy ingest run e2e evals load-test openapi
+.PHONY: help setup lint test test-int build package-budget plan apply destroy ingest run e2e evals load-test openapi
 
 help:
 	@echo "make setup                 install Python and web_ui deps, pre-commit hooks"
@@ -21,6 +21,7 @@ help:
 	@echo "make run [FAKE=1]           run agent_app, claims_api and web_ui locally (FAKE=1: offline fake model)"
 	@echo "make e2e                   Playwright happy path against make run"
 	@echo "make evals                 full golden set"
+	@echo "make package-budget        zip the budget controller for the function app"
 	@echo "make load-test             tools/load_test.py"
 	@echo "make openapi               export agent_app/openapi.json for the web UI client"
 
@@ -80,6 +81,9 @@ e2e:
 
 evals:
 	@echo "not implemented yet (F-036)"
+
+package-budget:
+	$(UV) run python tools/package_budget_function.py
 
 load-test:
 	$(UV) run python tools/load_test.py $(ARGS)

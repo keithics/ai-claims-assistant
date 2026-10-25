@@ -7,6 +7,7 @@ from pydantic import BaseModel, ValidationError
 from agent_app.llm import parse_arguments
 from agent_app.tools import draft_claim, get_claim_status, search_policy
 from agent_app.tools.base import ToolContext, ToolOutcome
+from telemetry import tool_call
 
 Runner = Callable[[Any, ToolContext], ToolOutcome]
 
@@ -47,4 +48,7 @@ def execute(name: str, raw_arguments: str, ctx: ToolContext) -> ToolOutcome:
         else:
             problems = str(exc)
         return ToolOutcome(f"Invalid arguments for {name}: {problems}", ok=False)
-    return runner(args, ctx)
+    with tool_call(name) as span:
+        outcome = runner(args, ctx)
+        span.set_attribute("tool.ok", outcome.ok)
+        return outcome

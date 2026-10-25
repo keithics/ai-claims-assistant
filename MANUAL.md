@@ -60,6 +60,13 @@ Running locally needs none of this: `make run FAKE=1` (offline) or `make run` (l
 - [x] Done 2026-10-26: policy change applied, integration tests and load test run.
 - [ ] Then destroy the gateway (`enable_apim = false` and apply, or `make destroy ENV=dev`) to stop the Developer-tier charge.
 
+### Telemetry and the budget controller (M5)
+- [ ] `make apply ENV=dev` creates, among other things, a Monitoring Metrics Publisher role for you on Application Insights (needed because key-based ingestion is off), the `budget-state` container and the dashboard workbook (4 tabs). After it, run the app with `APPLICATIONINSIGHTS_CONNECTION_STRING=$(terraform -chdir=infra/envs/dev output -raw application_insights_connection_string)` and `APP_ENV=dev`; spans appear in the `AppDependencies` table about 2-5 minutes later.
+- [ ] To try the budget controller: `make package-budget`, then in `terraform.tfvars` set `enable_budget_function = true` and `budget_function_package = "../../../dist/budget_controller.zip"`, plan and apply. The function uses Flex Consumption (check the region supports it) and runs every 15 minutes.
+- [ ] Give `agent_app` the state: set `BUDGET_STATE_ACCOUNT_URL` (the container app gets it from Terraform; locally use the storage account's blob endpoint, and you need Storage Blob Data Reader).
+- [ ] To force a country over its budget for a test: lower `monthly_budget_usd` in that country's pack (for example `ph.yaml` to 0.01), repackage, redeploy, wait for the next run, and expect that country's state to flip, an alert email, and low-risk turns to be routed small while risky ones hand off. Put the budget back afterwards.
+- [ ] Evaluation results can be pushed into the quality tab with `python tools/push_eval_summary.py` (needs the connection string and the Monitoring Metrics Publisher role).
+
 ## Cloudflare Access (before exposing anything publicly)
 - [ ] Have a Cloudflare zone for the hostname and add a proxied DNS record for the app.
 - [ ] In Cloudflare Zero Trust, create a self-hosted Access application for that hostname with a policy that allows only the people you want (for example by email). Note the team domain and the application audience (AUD) tag; the app or APIM will use them to check the `Cf-Access-Jwt-Assertion` token.

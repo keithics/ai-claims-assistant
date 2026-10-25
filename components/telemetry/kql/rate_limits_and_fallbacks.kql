@@ -1,0 +1,20 @@
+// Gateway 429s come from the API Management request log (the gateway writes it to
+// Application Insights); fallbacks come from the chat_turn spans.
+let from_time = ago(30d);
+let gateway = AppRequests
+    | where TimeGenerated >= from_time and AppRoleName contains "apim"
+    | extend country = tostring(Properties["country"])
+    | summarize gateway_requests = count(), gateway_429 = countif(ResultCode == "429")
+      by country;
+let turns = AppDependencies
+    | where TimeGenerated >= from_time and Name == "chat_turn"
+    | extend country = tostring(Properties["country"]),
+             fallback_used = tostring(Properties["fallback_used"]) == "True"
+    | summarize turns = count(), fallbacks = countif(fallback_used) by country;
+turns
+| join kind=fullouter gateway on country
+| project country = coalesce(country, country1), turns, fallbacks,
+          fallback_rate = iff(turns > 0, todouble(fallbacks) / turns, real(null)),
+          gateway_requests, gateway_429,
+          rate_429 = iff(gateway_requests > 0, todouble(gateway_429) / gateway_requests, real(null))
+| order by country asc

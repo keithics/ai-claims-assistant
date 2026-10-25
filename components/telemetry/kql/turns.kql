@@ -1,0 +1,15 @@
+// One row per chat turn. The other queries in this folder build on the same filter.
+let from_time = ago(30d);
+AppDependencies
+| where TimeGenerated >= from_time and Name == "chat_turn"
+| extend country = tostring(Properties["country"]),
+         language = tostring(Properties["language"]),
+         conversation_id = tostring(Properties["conversation_id"]),
+         outcome = tostring(Properties["outcome"]),
+         model = tostring(Properties["gen_ai.request.model"]),
+         tier = tostring(Properties["route_tier"]),
+         cost_usd = todouble(Properties["cost_usd"]),
+         input_tokens = tolong(Properties["gen_ai.usage.input_tokens"]),
+         output_tokens = tolong(Properties["gen_ai.usage.output_tokens"])
+| project TimeGenerated, country, language, conversation_id, outcome, model, tier, cost_usd,
+          input_tokens, output_tokens, DurationMs, app = AppRoleName

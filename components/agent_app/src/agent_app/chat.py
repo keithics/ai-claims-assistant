@@ -5,6 +5,8 @@ from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from decimal import Decimal
 
+from opentelemetry.trace import Span
+
 from agent_app.agent import AgentResult, run_agent
 from agent_app.approval import ApprovalService
 from agent_app.classify import classify
@@ -17,6 +19,7 @@ from country_packs import CountryPack
 from rag import PolicyDocument, RetrievedChunk, Retriever
 from router import BudgetState, Intent, Risk, RouteDecision, RouteRequest, RoutingConfig, route
 from shared import ModelPrice, cost_usd
+from telemetry import chat_turn, content_for_logging, mark_error, record_route, set_attributes
 
 ROUTE_REASON = "default deployment (router not enabled yet)"
 _CITATION = re.compile(r"\[(\d{1,2})\]")
@@ -26,7 +29,7 @@ class RequestError(ValueError):
     pass
 
 
-def _always_ok() -> BudgetState:
+def _always_ok(country: str) -> BudgetState:
     return "ok"
 
 
@@ -44,8 +47,9 @@ class ChatService:
     max_steps: int = 6
     documents: Mapping[str, PolicyDocument] = field(default_factory=dict)
     routing: RoutingConfig | None = None
-    budget_state: Callable[[], BudgetState] = _always_ok
+    budget_state: Callable[[str], BudgetState] = _always_ok
     allow_tier_override: bool = False
+    env: str = "unknown"
     clock: Callable[[], float] = time.perf_counter
 
     def answer(self, request: ChatRequest) -> ChatResponse:
@@ -61,12 +65,31 @@ class ChatService:
             )
         if request.tier_override and not self.allow_tier_override:
             raise RequestError("tier_override is not enabled on this service")
+        conversation_id = request.conversation_id or uuid.uuid4().hex
+        with chat_turn(
+            conversation_id=conversation_id,
+            country=pack.code,
+            language=request.language,
+            env=self.env,
+        ) as span:
+            return self._answer(request, pack, conversation_id, span)
+
+    def _answer(
+        self, request: ChatRequest, pack: CountryPack, conversation_id: str, span: Span
+    ) -> ChatResponse:
         started = self.clock()
         intent, risk = classify(request.message, pack.code)
         decision = self._decide(request, pack, intent, risk)
+        record_route(
+            decision=decision.tier,
+            reason=decision.reason,
+            deployment=decision.deployment,
+            intent=intent,
+            risk=risk,
+        )
         notice_text = notice(request.language, pack.human_handoff)
-        conversation_id = request.conversation_id or uuid.uuid4().hex
         if decision.tier == "handoff":
+            set_attributes(span, {"outcome": "handoff", "cost_usd": 0.0, "steps_used": 0})
             return ChatResponse(
                 conversation_id=conversation_id,
                 country=pack.code,
@@ -100,12 +123,42 @@ class ChatService:
                     ),
                     max_steps=self.max_steps,
                     max_output_tokens=max_tokens,
+                    prompt_content=content_for_logging(
+                        request.message, env=self.env, log_prompts=pack.log_prompts
+                    ),
                 )
                 break
             except ModelError as exc:
                 failure = exc
         if result is None:
-            raise failure or ModelError("no deployment available")
+            error = failure or ModelError("no deployment available")
+            set_attributes(span, {"outcome": "model_error", "fallback_used": len(attempts) > 1})
+            mark_error(span, error)
+            raise error
+        usage = self._usage(
+            result,
+            round((self.clock() - started) * 1000),
+            used,
+            decision,
+            intent,
+            risk,
+            fallback_used=used != attempts[0],
+        )
+        set_attributes(
+            span,
+            {
+                "outcome": result.outcome,
+                "steps_used": usage.steps_used,
+                "loop_capped": usage.loop_capped,
+                "cost_usd": usage.cost_usd,
+                "fallback_used": usage.fallback_used,
+                "cache_hit": usage.cache_hit,
+                "route_tier": usage.route.tier,
+                "gen_ai.request.model": used,
+                "gen_ai.usage.input_tokens": usage.input_tokens,
+                "gen_ai.usage.output_tokens": usage.output_tokens,
+            },
+        )
         return ChatResponse(
             conversation_id=conversation_id,
             country=pack.code,
@@ -114,15 +167,7 @@ class ChatService:
             citations=cited(result.answer, result.sources),
             notice=notice_text,
             pending_approvals=[self.approvals.issue(draft) for draft in result.drafts],
-            usage=self._usage(
-                result,
-                round((self.clock() - started) * 1000),
-                used,
-                decision,
-                intent,
-                risk,
-                fallback_used=used != attempts[0],
-            ),
+            usage=usage,
         )
 
     def _decide(
@@ -152,7 +197,7 @@ class ChatService:
             risk=risk,
             allowed_tiers=tuple(pack.allowed_model_tiers),
         )
-        return route(route_request, self.routing, self.budget_state())
+        return route(route_request, self.routing, self.budget_state(pack.code))
 
     def _handoff_usage(
         self, decision: RouteDecision, intent: str, risk: str, started: float

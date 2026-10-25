@@ -234,3 +234,22 @@ run "gateway_url_must_not_be_a_model_endpoint" {
 
   expect_failures = [var.gateway_url]
 }
+
+run "agent_app_can_read_the_budget_state_when_a_store_is_given" {
+  command = plan
+
+  variables {
+    budget_state_storage_id  = "/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/rg/providers/Microsoft.Storage/storageAccounts/st"
+    budget_state_account_url = "https://st.blob.core.windows.net"
+  }
+
+  assert {
+    condition     = azurerm_role_assignment.this["agent_app-budget"].role_definition_name == "Storage Blob Data Reader"
+    error_message = "agent_app only needs to read the budget state"
+  }
+
+  assert {
+    condition     = contains([for e in azurerm_container_app.this["agent_app"].template[0].container[0].env : e.name], "BUDGET_STATE_ACCOUNT_URL")
+    error_message = "agent_app needs the state account URL"
+  }
+}
