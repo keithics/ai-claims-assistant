@@ -8,7 +8,7 @@ APIM policy XML templates (`*.xml.tftpl`) and gateway contract tests. XML only, 
 |------|-------|--------------|
 | `service.xml.tftpl` | all APIs | One `<ip-filter action="allow">` with Cloudflare's IPv4 ranges plus optional extra addresses; deletes personal-data headers before anything is forwarded |
 | `product.xml.tftpl` | one per country | 403 if `x-country` is not this subscription's country; `llm-token-limit` keyed by subscription |
-| `model-api.xml.tftpl` | model API | Validates `x-country`, `x-app`, `x-model`, `x-route-tier` (anything else becomes `unknown`); `llm-emit-token-metric` with `country`, `app`, `model`, `route_tier` and Backend ID; optional semantic cache for `x-intent: faq` only; managed identity; a per-country concurrency cap (so one country's burst cannot trip the shared backends), backend pool with retry on 429/503 |
+| `model-api.xml.tftpl` | model API | Validates `x-country`, `x-app`, `x-model`, `x-route-tier` (anything else becomes `unknown`); `llm-emit-token-metric` with `country`, `app`, `model`, `route_tier` and Backend ID; optional semantic cache for `x-intent: faq` only, partitioned by product, language and tier; managed identity; a per-country concurrency cap (so one country's burst cannot trip the shared backends), backend pool with retry on 429/503 |
 | `claims-api.xml.tftpl` | claims API | Rejects unknown country, rate limit per subscription, backend; no cache, no token policies |
 | `cloudflare-ips.xml` | fragment | The 15 Cloudflare IPv4 ranges, no wrapper. Refresh from https://www.cloudflare.com/ips-v4 (last checked 2026-10-25) |
 

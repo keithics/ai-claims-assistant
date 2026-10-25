@@ -92,6 +92,7 @@ class ScriptedChat:
         tools: Sequence[dict[str, Any]] | None = None,
         cache_key: str | None = None,
         intent: str | None = None,
+        language: str | None = None,
     ) -> Completion:
         self.calls.append(
             {
@@ -102,6 +103,7 @@ class ScriptedChat:
                 "tools": tools,
                 "cache_key": cache_key,
                 "intent": intent,
+                "language": language,
             }
         )
         if self.script is not None:

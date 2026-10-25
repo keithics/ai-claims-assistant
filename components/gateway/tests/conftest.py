@@ -96,6 +96,7 @@ def defaults() -> dict[str, Any]:
         "token_quota_period": "Monthly",
         "allowed_countries": SAMPLE_COUNTRIES,
         "allowed_apps": ["agent_app", "evals"],
+        "allowed_languages": ["en", "fil", "ceb", "id", "th", "ja"],
         "allowed_models": ["small-a", "small-b", "large", "embedding"],
         "allowed_route_tiers": ["small", "large"],
         "metric_namespace": "kalayaan",

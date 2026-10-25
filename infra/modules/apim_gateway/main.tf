@@ -242,6 +242,7 @@ resource "azurerm_api_management_api_policy" "model" {
     allowed_apps                = var.allowed_apps
     allowed_models              = local.allowed_models
     allowed_route_tiers         = var.allowed_route_tiers
+    allowed_languages           = var.allowed_languages
     metric_namespace            = var.metric_namespace
     semantic_cache_enabled      = var.semantic_cache_enabled
     semantic_cache_threshold    = var.semantic_cache_threshold

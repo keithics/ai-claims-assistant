@@ -44,3 +44,12 @@ Other choices recorded here:
 - `llm-token-limit` counts per gateway instance; a single Developer unit means the limit is exact, but a scale-out would make it approximate.
 - The `Backend ID` metric dimension, the `new[] {...}.Contains` expressions and the `llm-*` element syntax are validated by API Management only at apply time. The first apply is the real test of the policies.
 - The apps still need to be changed to call the gateway with their country key (F-033). Until then `allow_direct_model_endpoint` stays true.
+
+## Addendum: semantic cache safety (2026-10-26)
+
+A shared cache can leak or poison answers, so the lever is built with these limits (it is still off and not applied):
+
+- Only a plain FAQ is cacheable: `agent_app` sends `x-intent: faq` only for a low-risk FAQ turn with no client-supplied history. Claim status, claim filing, rule questions with injection-like text and anything with history are never sent as cacheable.
+- The cache is partitioned by the authenticated product (which fixes the country; the product policy returns 403 if `x-country` differs), the validated language and the route tier, not by a raw client header. Unknown languages are never cached.
+- Only successful (200) answers are stored, and `ignore-system-messages` is on.
+- Before turning it on, measure wrong-hit rate on the golden FAQ cases and review the cached answers; the score threshold stays at 0.05 (strict).

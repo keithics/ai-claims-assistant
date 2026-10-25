@@ -178,6 +178,12 @@ variable "allowed_apps" {
   default     = ["agent_app", "evals", "ingest"]
 }
 
+variable "allowed_languages" {
+  type        = list(string)
+  description = "Values of x-language that partition the semantic cache. Anything else is treated as unknown and never cached."
+  default     = ["en", "fil", "ceb", "id", "th", "ja"]
+}
+
 variable "allowed_route_tiers" {
   type        = list(string)
   description = "Values of x-route-tier that are kept as the route_tier dimension."

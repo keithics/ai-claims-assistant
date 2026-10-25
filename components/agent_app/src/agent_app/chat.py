@@ -142,7 +142,8 @@ class ChatService:
                     max_steps=self.max_steps,
                     max_output_tokens=max_tokens,
                     tools=compact_specs(TOOL_SPECS) if "compact_prompts" in levers else None,
-                    intent=intent,
+                    intent=cache_intent(intent, risk, bool(request.history)),
+                    language=request.language,
                     cache_key=(
                         f"{pack.code}:{request.language}" if "prompt_cache_key" in levers else None
                     ),
@@ -310,6 +311,11 @@ class ChatService:
             tool_calls=[record.name for record in result.tool_calls],
             fallback_used=fallback_used,
         )
+
+
+def cache_intent(intent: str, risk: str, has_history: bool) -> str | None:
+    """Only a plain, low-risk FAQ with no client-supplied history may be answered from the cache."""
+    return "faq" if intent == "faq" and risk == "low" and not has_history else None
 
 
 def cited(answer: str, sources: Sequence[RetrievedChunk]) -> list[Citation]:

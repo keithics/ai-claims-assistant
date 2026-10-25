@@ -40,6 +40,7 @@ class ChatClient(Protocol):
         tools: Sequence[dict[str, Any]] | None = None,
         cache_key: str | None = None,
         intent: str | None = None,
+        language: str | None = None,
     ) -> Completion: ...
 
 
@@ -103,6 +104,7 @@ class GatewayChatClient:
         tools: Sequence[dict[str, Any]] | None = None,
         cache_key: str | None = None,
         intent: str | None = None,
+        language: str | None = None,
     ) -> Completion:
         tier = self._tiers.get(deployment)
         if tier is None:
@@ -122,6 +124,7 @@ class GatewayChatClient:
                     "x-model": deployment,
                     "x-route-tier": tier,
                     **({"x-intent": intent} if intent else {}),
+                    **({"x-language": language} if language else {}),
                 },
                 messages=cast(Any, list(messages)),
                 max_completion_tokens=max_output_tokens,

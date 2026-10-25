@@ -5,6 +5,7 @@
     <set-variable name="app" value="@{ var v = context.Request.Headers.GetValueOrDefault("x-app", "").Trim().ToLowerInvariant(); return new[] { %{ for item in allowed_apps ~}"${item}", %{ endfor ~}}.Contains(v) ? v : "unknown"; }" />
     <set-variable name="model" value="@{ var v = context.Request.Headers.GetValueOrDefault("x-model", "").Trim().ToLowerInvariant(); return new[] { %{ for item in allowed_models ~}"${item}", %{ endfor ~}}.Contains(v) ? v : "unknown"; }" />
     <set-variable name="route_tier" value="@{ var v = context.Request.Headers.GetValueOrDefault("x-route-tier", "").Trim().ToLowerInvariant(); return new[] { %{ for item in allowed_route_tiers ~}"${item}", %{ endfor ~}}.Contains(v) ? v : "unknown"; }" />
+    <set-variable name="language" value="@{ var v = context.Request.Headers.GetValueOrDefault("x-language", "").Trim().ToLowerInvariant(); return new[] { %{ for item in allowed_languages ~}"${item}", %{ endfor ~}}.Contains(v) ? v : "unknown"; }" />
     <set-variable name="is_faq" value="@(context.Request.Headers.GetValueOrDefault("x-intent", "").Trim().ToLowerInvariant() == "faq")" />
     <set-header name="x-country" exists-action="override">
       <value>@((string)context.Variables["country"])</value>
@@ -18,14 +19,14 @@
     </llm-emit-token-metric>
 %{ if semantic_cache_enabled ~}
     <choose>
-      <when condition="@((bool)context.Variables["is_faq"])">
+      <when condition="@((bool)context.Variables["is_faq"] &amp;&amp; (string)context.Variables["language"] != "unknown")">
         <llm-semantic-cache-lookup
           score-threshold="${semantic_cache_threshold}"
           embeddings-backend-id="${embeddings_backend_id}"
           embeddings-backend-auth="system-assigned"
           ignore-system-messages="true"
           max-message-count="${semantic_cache_max_messages}">
-          <vary-by>@((string)context.Variables["country"])</vary-by>
+          <vary-by>@(context.Product.Id + "|" + (string)context.Variables["language"] + "|" + (string)context.Variables["route_tier"])</vary-by>
         </llm-semantic-cache-lookup>
       </when>
     </choose>
@@ -48,7 +49,7 @@
     <base />
 %{ if semantic_cache_enabled ~}
     <choose>
-      <when condition="@((bool)context.Variables["is_faq"] &amp;&amp; context.Response.StatusCode == 200)">
+      <when condition="@((bool)context.Variables["is_faq"] &amp;&amp; (string)context.Variables["language"] != "unknown" &amp;&amp; context.Response.StatusCode == 200)">
         <llm-semantic-cache-store duration="${semantic_cache_ttl_seconds}" />
       </when>
     </choose>

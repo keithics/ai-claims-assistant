@@ -194,21 +194,39 @@ def test_semantic_cache_is_off_by_default(render: Render) -> None:
     assert "llm-semantic-cache" not in xml
 
 
-def test_semantic_cache_applies_to_faq_only_and_is_partitioned_by_country(
+def test_semantic_cache_is_partitioned_by_the_subscription_product_language_and_tier(
     render: Render,
 ) -> None:
     root = parse(render("model-api", semantic_cache_enabled=True))
     lookup = next(root.iter("llm-semantic-cache-lookup"))
     assert lookup.get("embeddings-backend-auth") == "system-assigned"
     assert lookup.get("ignore-system-messages") == "true"
-    assert 'Variables["country"]' in (lookup.findtext("vary-by") or "")
+    key = lookup.findtext("vary-by") or ""
+    assert "context.Product.Id" in key
+    assert 'Variables["language"]' in key and 'Variables["route_tier"]' in key
+    assert "x-country" not in key
+
+
+def test_the_cache_runs_only_for_faq_with_a_known_language_and_stores_only_successes(
+    render: Render,
+) -> None:
+    root = parse(render("model-api", semantic_cache_enabled=True))
     for tag in ("llm-semantic-cache-lookup", "llm-semantic-cache-store"):
         parent = next(w for w in root.iter("when") if w.find(tag) is not None)
-        assert 'Variables["is_faq"]' in (parent.get("condition") or "")
+        condition = parent.get("condition") or ""
+        assert 'Variables["is_faq"]' in condition
+        assert 'Variables["language"] != "unknown"' in condition
     store_condition = next(
         w for w in root.iter("when") if w.find("llm-semantic-cache-store") is not None
     ).get("condition")
     assert "== 200" in (store_condition or "")
+
+
+def test_unknown_languages_become_unknown_so_they_are_never_cached(render: Render) -> None:
+    xml = render("model-api", allowed_languages=["en", "th"])
+    variable = next(v for v in parse(xml).iter("set-variable") if v.get("name") == "language")
+    assert 'new[] { "en", "th", }' in (variable.get("value") or "")
+    assert ': "unknown"' in (variable.get("value") or "")
 
 
 def test_semantic_cache_flag_is_the_only_difference_in_what_runs(render: Render) -> None:
