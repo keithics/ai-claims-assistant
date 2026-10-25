@@ -17,7 +17,7 @@ The budget controller runs every 15 minutes, reads each country's month-to-date 
 Use a blob: `budget-state/state.json` in the env storage account (option 2).
 
 - The file is `{"version": 1, "states": {"ph": "ok", ...}}`. The function is the only writer (Storage Blob Data Owner); `agent_app` only reads (Storage Blob Data Reader).
-- The app caches the file for 60 seconds. If it cannot be read, the app keeps the last known state, and starts as `ok` if it has never read one. So a storage outage can never block users or force a handoff.
+- The app caches the file for 60 seconds. If the file does not exist yet, nothing is flagged and every country is `ok`. If it exists but cannot be read, or holds an unrecognised value, the app keeps the last known state, or uses `warn` if it has never read one (low-risk work goes to the small model, high-risk work stays on large). A storage outage therefore degrades cost, never availability, and never silently lifts the control.
 - The function writes the file only when a state changes, and sends an alert before writing, so a failed alert is retried on the next run instead of being lost. A repeated run with the same spend writes and alerts nothing.
 - The alert is a `budget_state_changed` span in Application Insights; a scheduled query rule on the workspace turns it into a notification through the observability action group.
 - At the start of a month spend resets, so every country returns to `ok` and one change alert per country that had been over is expected.

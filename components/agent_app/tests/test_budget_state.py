@@ -35,7 +35,7 @@ def test_the_state_is_cached_until_the_ttl_passes() -> None:
     assert reader("ph") == "exceeded" and len(calls) == 2
 
 
-def test_an_unreadable_state_keeps_the_last_known_one_and_starts_as_ok() -> None:
+def test_an_unreadable_state_keeps_the_last_known_one_and_is_cautious_before_any_read() -> None:
     now = [0.0]
     broken = [False]
 
@@ -49,11 +49,32 @@ def test_an_unreadable_state_keeps_the_last_known_one_and_starts_as_ok() -> None
     broken[0], now[0] = True, 20
     assert reader("ph") == "exceeded"
     first = BudgetStateReader(lambda: b"garbage")
-    assert first("ph") == "ok"
+    assert first("ph") == "warn"
 
 
-def test_unknown_states_in_the_file_are_ignored() -> None:
-    assert BudgetStateReader(lambda: blob({"ph": "panic"}))("ph") == "ok"
+def test_an_unrecognised_state_is_treated_as_warn_not_ok() -> None:
+    reader = BudgetStateReader(lambda: blob({"ph": "panic", "sg": "ok"}))
+    assert reader("ph") == "warn" and reader("sg") == "ok"
+
+
+def test_a_missing_file_means_nothing_is_flagged() -> None:
+    assert BudgetStateReader(lambda: blob({}))("ph") == "ok"
+
+
+def test_a_failed_first_read_recovers_on_the_next_successful_one() -> None:
+    now = [0.0]
+    calls: list[int] = []
+
+    def fetch() -> bytes:
+        calls.append(1)
+        if len(calls) == 1:
+            raise OSError("down")
+        return blob({"ph": "ok"})
+
+    reader = BudgetStateReader(fetch, ttl_seconds=10, clock=lambda: now[0])
+    assert reader("ph") == "warn"
+    now[0] = 11
+    assert reader("ph") == "ok"
 
 
 def test_forcing_a_country_over_budget_downgrades_it_and_hands_off_high_risk(
