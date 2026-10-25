@@ -15,6 +15,9 @@ INTENT_OF_TYPE = {
     "code_switch": "country_rule",
     "claim_status": "claim_status",
 }
+# Evidence for these comes from the claims system, which the judge cannot see in full, so
+# groundedness is not part of their pass bar. Relevance, tool use, language and safety still are.
+TOOL_EVIDENCE_TYPES = ("claim_status",)
 DEFAULT_GATE = Path(__file__).resolve().parents[2] / "gate.yaml"
 
 
@@ -34,6 +37,7 @@ class RoutingBar(BaseModel):
 
     min_cases_per_cell: int = Field(ge=1)
     min_cell_pass_rate: float = Field(gt=0, le=1)
+    min_large_gain: float = Field(ge=0, le=1)
 
 
 class GateConfig(BaseModel):
@@ -55,7 +59,9 @@ def case_passes(result: dict[str, Any], bar: CasePasses) -> bool:
         value = scores.get(name)
         return value is not None and value >= minimum
 
-    if not at_least("groundedness", bar.min_groundedness):
+    if result["case_type"] not in TOOL_EVIDENCE_TYPES and not at_least(
+        "groundedness", bar.min_groundedness
+    ):
         return False
     if not at_least("relevance", bar.min_relevance):
         return False
@@ -99,9 +105,17 @@ def cells(results: list[dict[str, Any]], bar: CasePasses) -> list[Cell]:
 
 
 def propose(
-    current: RoutingConfig, small_results: list[dict[str, Any]], gate: GateConfig
+    current: RoutingConfig,
+    small_results: list[dict[str, Any]],
+    gate: GateConfig,
+    large_results: list[dict[str, Any]] | None = None,
 ) -> tuple[RoutingConfig, list[str]]:
     measured = {(c.language, c.intent): c for c in cells(small_results, gate.case_passes)}
+    large_measured = (
+        {(c.language, c.intent): c for c in cells(large_results, gate.case_passes)}
+        if large_results is not None
+        else {}
+    )
     languages = sorted({r["language"] for r in small_results})
     rules: list[RoutingRule] = []
     notes: list[str] = []
@@ -115,6 +129,13 @@ def propose(
                 notes.append(f"{language}/{intent}: {seen} case(s), not enough data, kept on large")
                 reason = f"not enough small-tier evidence ({seen} case(s))"
             elif cell.rate < gate.routing.min_cell_pass_rate:
+                big = large_measured.get((language, intent))
+                if big is not None and big.rate - cell.rate < gate.routing.min_large_gain:
+                    notes.append(
+                        f"{language}/{intent}: small passed {cell.passed}/{cell.cases} but large "
+                        f"only {big.passed}/{big.cases}, large would not help, stay on small"
+                    )
+                    continue
                 notes.append(
                     f"{language}/{intent}: small passed {cell.passed}/{cell.cases}, use large"
                 )

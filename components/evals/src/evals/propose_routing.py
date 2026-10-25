@@ -29,7 +29,13 @@ def main(argv: list[str] | None = None) -> int:
     except (OSError, RoutingConfigError) as exc:
         print(f"propose-routing: {exc}", file=sys.stderr)
         return 2
-    proposed, notes = propose(current, load_results(small), load_gate(args.gate))
+    large = args.results / "cases-large.jsonl"
+    proposed, notes = propose(
+        current,
+        load_results(small),
+        load_gate(args.gate),
+        load_results(large) if large.exists() else None,
+    )
     out = args.out or args.results / "routing.proposed.yaml"
     out.write_text(render_yaml(proposed, notes), encoding="utf-8")
     print(f"propose-routing: wrote {out} ({len(proposed.rules)} large-tier rule(s))")

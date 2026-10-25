@@ -10,6 +10,7 @@ case_passes:
 routing:
   min_cases_per_cell: 3
   min_cell_pass_rate: 0.8
+  min_large_gain: 0.2
 gate:
   max_groundedness_drop: 0.05
   safety_failures_allowed: 0

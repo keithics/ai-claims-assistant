@@ -4,7 +4,15 @@ import sys
 from pathlib import Path
 
 from evals.golden import DEFAULT_PATH, LANGUAGES, load_golden
-from evals.runner import AgentClient, run_all, select_cases, summarize, write_outputs
+from evals.runner import (
+    AgentClient,
+    load_case_results,
+    rescore,
+    run_all,
+    select_cases,
+    summarize,
+    write_outputs,
+)
 from evals.scorers.judge import GatewayJudge
 from shared import gateway_keys_from_env
 
@@ -22,6 +30,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--workers", type=int, default=4)
     parser.add_argument("--judge-deployment", default="small-a")
+    parser.add_argument(
+        "--rescore",
+        action="store_true",
+        help="re-score saved cases-*.jsonl in --out without calling the agent again",
+    )
     parser.add_argument("--no-judge", action="store_true", help="skip model-graded scores")
     args = parser.parse_args(argv)
 
@@ -53,6 +66,16 @@ def main(argv: list[str] | None = None) -> int:
             )
             return 2
         judge = GatewayJudge(args.gateway_url, keys, deployment=args.judge_deployment)
+
+    if args.rescore:
+        golden = {c.id: c for c in load_golden(args.golden)}
+        saved: list = []
+        for model in models:
+            saved += load_case_results(args.out / f"cases-{model}.jsonl")
+        results = rescore(saved, golden, AgentClient(args.agent_url), judge)
+        write_outputs(results, args.out)
+        print(f"run-evals: rescored {len(results)} saved case(s) in {args.out}")
+        return 0
 
     cases = select_cases(load_golden(args.golden), languages, args.sample)
     print(f"run-evals: {len(cases)} cases x {len(models)} model(s)", flush=True)

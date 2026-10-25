@@ -117,7 +117,7 @@ def polite_form(answer: str) -> float:
 def tool_accuracy(expected: str, tools_used: Sequence[str]) -> float:
     used = set(tools_used)
     if expected == "none":
-        return 1.0 if not used & {"draft_claim", "get_claim_status"} else 0.0
+        return 1.0 if "draft_claim" not in used else 0.0
     if expected == "draft_claim":
         return 1.0 if "draft_claim" in used else 0.0
     return 1.0 if expected in used and "draft_claim" not in used else 0.0

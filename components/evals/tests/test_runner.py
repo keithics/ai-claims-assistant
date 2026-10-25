@@ -260,3 +260,32 @@ def test_the_judge_retries_a_rate_limited_call() -> None:
         "coherence", country="ph", question="", answer="a", context="", reference=""
     )
     assert graded.score == 1.0 and waits == [15.0]
+
+
+def test_status_answers_are_graded_against_the_claims_result_not_just_documents() -> None:
+    from evals.runner import grading_context
+
+    status = next(c for c in CASES if c.case_type == "claim_status")
+    faq = next(c for c in CASES if c.case_type == "faq")
+    assert "CLAIMS SYSTEM RESULT" in grading_context(status, [], fake_agent())
+    assert status.expected_answer in grading_context(status, ["ph-overview"], fake_agent())
+    assert "CLAIMS SYSTEM RESULT" not in grading_context(faq, ["ph-overview"], fake_agent())
+
+
+def test_rescoring_updates_saved_cases_without_calling_the_agent_chat(tmp_path: Path) -> None:
+    from evals.runner import load_case_results, rescore
+
+    cases = {c.id: c for c in CASES}
+    results = run_all(select_cases(CASES, ["en"], 6), ["small"], fake_agent(), FakeJudge(0.25))
+    write_outputs(results, tmp_path)
+    saved = load_case_results(tmp_path / "cases-small.jsonl")
+    assert len(saved) == 6 and saved[0].scores["groundedness"] == 0.25
+    judge = FakeJudge(1.0)
+    rescored = rescore(saved, cases, fake_agent(), judge)
+    changed = {r.case_type: r.scores["groundedness"] for r in rescored}
+    assert judge.calls and all(m in {"groundedness", "relevance", "coherence"} for m in judge.calls)
+    assert (
+        any(v == 1.0 for t, v in changed.items() if t == "claim_status")
+        or "claim_status" not in changed
+    )
+    assert all(r.scores["groundedness"] == 0.25 for r in rescored if r.case_type != "claim_status")

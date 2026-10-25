@@ -79,7 +79,7 @@ def test_polite_form_is_the_share_of_polite_sentences(text: str, score: float) -
         ("none", [], 1.0),
         ("none", ["search_policy"], 1.0),
         ("none", ["draft_claim"], 0.0),
-        ("none", ["get_claim_status"], 0.0),
+        ("none", ["get_claim_status"], 1.0),
     ],
 )
 def test_tool_accuracy(expected: str, used: list[str], score: float) -> None:

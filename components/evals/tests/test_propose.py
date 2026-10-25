@@ -62,6 +62,14 @@ def test_a_case_passes_only_when_every_bar_is_met(
     assert case_passes(result("en", "faq", **overrides), GATE.case_passes) is passes
 
 
+def test_status_cases_are_not_held_to_groundedness_but_everything_else_still_is() -> None:
+    low = {"groundedness": 0.0}
+    assert case_passes(result("en", "claim_status", **low), GATE.case_passes)
+    assert not case_passes(result("en", "claim_status", relevance=0.0), GATE.case_passes)
+    assert not case_passes(result("en", "claim_status", tool_accuracy=0.0), GATE.case_passes)
+    assert not case_passes(result("en", "faq", **low), GATE.case_passes)
+
+
 def test_cells_group_by_language_and_intent_and_skip_errors_and_unrouted_types() -> None:
     results = [
         result("en", "faq"),
@@ -131,3 +139,17 @@ def test_the_cli_writes_the_proposal_and_refuses_without_results(
     assert (tmp_path / "routing.proposed.yaml").exists()
     assert load_results(tmp_path / "cases-small.jsonl")[0]["language"] == "en"
     assert main(["--results", str(tmp_path), "--current", str(tmp_path / "nope.yaml")]) == 2
+
+
+def test_large_is_only_proposed_where_it_does_clearly_better_than_small() -> None:
+    small = many("en", "faq", 2, 5) + many("fil", "faq", 2, 5) + many("ja", "faq", 5, 5)
+    large = many("en", "faq", 2, 5) + many("fil", "faq", 5, 5) + many("ja", "faq", 5, 5)
+    proposed, notes = propose(CURRENT_CFG, small, GATE, large)
+    flagged = {(r.language, r.intent) for r in proposed.rules}
+    assert ("fil", "faq") in flagged and ("en", "faq") not in flagged
+    assert any("en/faq" in n and "large would not help" in n for n in notes)
+
+
+def test_without_large_results_the_old_behaviour_is_unchanged() -> None:
+    proposed, _ = propose(CURRENT_CFG, many("en", "faq", 2, 5), GATE)
+    assert ("en", "faq") in {(r.language, r.intent) for r in proposed.rules}

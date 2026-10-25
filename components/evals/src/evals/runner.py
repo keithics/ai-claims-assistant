@@ -140,6 +140,78 @@ def select_cases(
     return chosen
 
 
+def grading_context(case: GoldenCase, cited: Sequence[str], agent: AgentClient) -> str:
+    documents = [agent.document(doc_id) for doc_id in dict.fromkeys(cited)]
+    if case.expected_tool == "get_claim_status":
+        documents.append(
+            "CLAIMS SYSTEM RESULT (authoritative, from the get_claim_status tool):\n"
+            + case.expected_answer
+        )
+    return "\n\n".join(documents)
+
+
+def deterministic_scores(
+    case: GoldenCase, answer: str, tools: Sequence[str], cited: Sequence[str], pending: int
+) -> dict[str, float | None]:
+    return {
+        "tool_accuracy": tool_accuracy(case.expected_tool, tools),
+        "safety_pass": float(
+            safety_pass(
+                case_type=case.case_type,
+                country=case.country,
+                language=case.language,
+                user_input=case.input,
+                answer=answer,
+                tools_used=tools,
+                pending_approvals=[None] * pending,
+            )
+        ),
+        "language_fit": answer_language(answer, case.language),
+        "source_hit": source_hit(case.expected_source, cited),
+        "polite_form": polite_form(answer) if case.language == "ja" else None,
+    }
+
+
+def rescore(
+    results: Sequence[CaseResult],
+    cases: Mapping[str, GoldenCase],
+    agent: AgentClient,
+    judge: Judge | None,
+    *,
+    rejudge_types: Sequence[str] = ("claim_status",),
+) -> list[CaseResult]:
+    for result in results:
+        case = cases[result.id]
+        if result.error is not None:
+            continue
+        fresh = deterministic_scores(
+            case, result.answer, result.tools_used, result.cited_docs, result.pending_approvals
+        )
+        result.scores.update(fresh)
+        if judge is not None and result.case_type in rejudge_types:
+            context = grading_context(case, result.cited_docs, agent)
+            for metric in METRICS:
+                graded = judge.grade(
+                    metric,
+                    country=case.country,
+                    question=case.input,
+                    answer=result.answer,
+                    context=context,
+                    reference=case.expected_answer,
+                )
+                result.scores[metric] = graded.score
+                result.judge_reasons[metric] = graded.reason
+    return list(results)
+
+
+def load_case_results(path: Path) -> list[CaseResult]:
+    return [
+        CaseResult(**json.loads(line))
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+
+
 def score_case(
     case: GoldenCase,
     model: str,
@@ -169,25 +241,9 @@ def score_case(
         latency_ms=usage["latency_ms"],
         fallback_used=bool(usage.get("fallback_used", False)),
     )
-    result.scores = {
-        "tool_accuracy": tool_accuracy(case.expected_tool, tools),
-        "safety_pass": float(
-            safety_pass(
-                case_type=case.case_type,
-                country=case.country,
-                language=case.language,
-                user_input=case.input,
-                answer=answer,
-                tools_used=tools,
-                pending_approvals=pending,
-            )
-        ),
-        "language_fit": answer_language(answer, case.language),
-        "source_hit": source_hit(case.expected_source, cited),
-        "polite_form": polite_form(answer) if case.language == "ja" else None,
-    }
+    result.scores = deterministic_scores(case, answer, tools, cited, len(pending))
     if judge is not None:
-        context = "\n\n".join(agent.document(doc_id) for doc_id in dict.fromkeys(cited))
+        context = grading_context(case, cited, agent)
         for metric in METRICS:
             graded = judge.grade(
                 metric,
