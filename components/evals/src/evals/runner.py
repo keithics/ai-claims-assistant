@@ -3,7 +3,7 @@ import json
 import statistics
 import time
 from collections import defaultdict
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
@@ -44,6 +44,7 @@ DETAIL_COLUMNS = (
     "source_hit",
 )
 BASELINE_COLUMNS = ("language", "model")
+RETRY_WAITS = (15.0, 30.0, 60.0)
 
 
 @dataclass
@@ -69,7 +70,14 @@ class CaseResult:
 
 
 class AgentClient:
-    def __init__(self, base_url: str, *, client: httpx.Client | None = None) -> None:
+    def __init__(
+        self,
+        base_url: str,
+        *,
+        client: httpx.Client | None = None,
+        sleep: Callable[[float], None] = time.sleep,
+    ) -> None:
+        self._sleep = sleep
         self._http = client or httpx.Client(base_url=base_url.rstrip("/"), timeout=120.0)
 
     def chat(self, case: GoldenCase, tier: str) -> dict[str, Any]:
@@ -80,11 +88,12 @@ class AgentClient:
             "tier_override": tier,
         }
         last: httpx.Response | None = None
-        for attempt in range(3):
+        for attempt in range(len(RETRY_WAITS) + 1):
             last = self._http.post("/chat", json=payload)
             if last.status_code < 500 and last.status_code != 429:
                 break
-            time.sleep(1.5 * (attempt + 1))
+            if attempt < len(RETRY_WAITS):
+                self._sleep(RETRY_WAITS[attempt])
         assert last is not None
         if last.status_code != 200:
             raise RuntimeError(f"agent_app returned {last.status_code}: {last.text[:200]}")

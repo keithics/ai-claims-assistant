@@ -1,10 +1,11 @@
 import json
-from collections.abc import Mapping
+import time
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from typing import Protocol
+from typing import Any, Protocol, cast
 
 import httpx
-from openai import OpenAI
+from openai import APIConnectionError, APIStatusError, OpenAI
 
 METRICS = ("groundedness", "relevance", "coherence")
 
@@ -27,6 +28,7 @@ PROMPTS: Mapping[str, str] = {
         "language. 5 = clear and fluent; 3 = understandable but awkward; 1 = confusing."
     ),
 }
+RETRY_WAITS = (15.0, 30.0, 60.0)
 FORMAT = 'Reply with JSON only: {"score": <integer 1-5>, "reason": "<one short sentence>"}.'
 
 
@@ -70,7 +72,9 @@ class GatewayJudge:
         deployment: str = "small-a",
         api_version: str = "2024-10-21",
         http_client: httpx.Client | None = None,
+        sleep: Callable[[float], None] = time.sleep,
     ) -> None:
+        self._sleep = sleep
         self._base = f"{gateway_url.rstrip('/')}/{tier}"
         self._keys = dict(keys)
         self._tier = tier
@@ -88,7 +92,7 @@ class GatewayJudge:
                 base_url=self._base,
                 api_key=key,
                 http_client=self._http_client,  # type: ignore[arg-type]
-                max_retries=2,
+                max_retries=0,
                 default_query={"api-version": self._api_version},
                 default_headers={
                     "api-key": key,
@@ -114,13 +118,21 @@ class GatewayJudge:
             f"QUESTION:\n{question}\n\nREFERENCE:\n{reference}\n\n"
             f"CONTEXT:\n{context or '(none)'}\n\nANSWER:\n{answer}\n\n{FORMAT}"
         )
-        response = self._client(country).chat.completions.create(
-            model=self._deployment,
-            messages=[
-                {"role": "system", "content": PROMPTS[metric]},
-                {"role": "user", "content": body},
-            ],
-            max_completion_tokens=200,
-            response_format={"type": "json_object"},
-        )
-        return parse_score(response.choices[0].message.content or "")
+        messages = [
+            {"role": "system", "content": PROMPTS[metric]},
+            {"role": "user", "content": body},
+        ]
+        for attempt in range(len(RETRY_WAITS) + 1):
+            try:
+                response = self._client(country).chat.completions.create(
+                    model=self._deployment,
+                    messages=cast(Any, messages),
+                    max_completion_tokens=200,
+                    response_format={"type": "json_object"},
+                )
+                return parse_score(response.choices[0].message.content or "")
+            except (APIStatusError, APIConnectionError):
+                if attempt == len(RETRY_WAITS):
+                    raise
+                self._sleep(RETRY_WAITS[attempt])
+        raise AssertionError("unreachable")

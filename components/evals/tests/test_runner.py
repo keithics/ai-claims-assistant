@@ -205,3 +205,58 @@ def test_case_result_defaults_are_independent() -> None:
     b = CaseResult("b", "en", "ph", "faq", "small")
     a.tools_used.append("x")
     assert b.tools_used == []
+
+
+def test_the_agent_client_waits_and_retries_while_the_gateway_recovers() -> None:
+    waits: list[float] = []
+    answers = iter([503, 502, 200])
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        status = next(answers)
+        return httpx.Response(status, json={"detail": "x"} if status != 200 else {"ok": True})
+
+    agent = AgentClient(
+        "http://a",
+        client=httpx.Client(base_url="http://a", transport=httpx.MockTransport(handler)),
+        sleep=waits.append,
+    )
+    assert agent.chat(CASES[0], "small") == {"ok": True}
+    assert waits == [15.0, 30.0]
+
+
+def test_the_judge_retries_a_rate_limited_call() -> None:
+    waits: list[float] = []
+    calls: list[int] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        calls.append(1)
+        if len(calls) == 1:
+            return httpx.Response(503, json={"error": "breaker open"})
+        content = json.dumps({"score": 5, "reason": "ok"})
+        return httpx.Response(
+            200,
+            json={
+                "id": "x",
+                "object": "chat.completion",
+                "created": 0,
+                "model": "m",
+                "choices": [
+                    {
+                        "index": 0,
+                        "finish_reason": "stop",
+                        "message": {"role": "assistant", "content": content},
+                    }
+                ],
+            },
+        )
+
+    judge = GatewayJudge(
+        "https://gw",
+        {"ph": "k"},
+        http_client=httpx.Client(transport=httpx.MockTransport(handler)),
+        sleep=waits.append,
+    )
+    graded = judge.grade(
+        "coherence", country="ph", question="", answer="a", context="", reference=""
+    )
+    assert graded.score == 1.0 and waits == [15.0]
