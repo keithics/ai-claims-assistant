@@ -23,8 +23,11 @@ from rag.retriever import (
     SearchBackend,
     UnknownCountryError,
 )
+from rag.trim import TrimResult, trim_chunks
 
 __all__ = [
+    "TrimResult",
+    "trim_chunks",
     "AzureSearchBackend",
     "AzureSearchStore",
     "OpenAIEmbedder",

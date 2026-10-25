@@ -90,6 +90,7 @@ class ScriptedChat:
         country: str,
         max_output_tokens: int,
         tools: Sequence[dict[str, Any]] | None = None,
+        cache_key: str | None = None,
     ) -> Completion:
         self.calls.append(
             {
@@ -98,6 +99,7 @@ class ScriptedChat:
                 "country": country,
                 "max": max_output_tokens,
                 "tools": tools,
+                "cache_key": cache_key,
             }
         )
         if self.script is not None:

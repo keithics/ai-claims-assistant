@@ -77,6 +77,7 @@ def build_service(settings: Settings) -> ChatService:
         documents={d.doc_id: d for d in load_policy_documents(packs=packs)},
         routing=load_routing(settings.routing_path, catalog.deployments),
         allow_tier_override=settings.allow_tier_override,
+        levers=settings.levers,
         budget_state=_budget_state(settings),
     )
 

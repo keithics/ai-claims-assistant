@@ -19,6 +19,8 @@ class ToolContext:
     retriever: Retriever
     claims: ClaimsGateway
     sources: list[RetrievedChunk] = field(default_factory=list)
+    levers: frozenset[str] = frozenset()
+    fired: set[str] = field(default_factory=set)
 
     def source_number(self, chunk: RetrievedChunk) -> int:
         for index, known in enumerate(self.sources, start=1):

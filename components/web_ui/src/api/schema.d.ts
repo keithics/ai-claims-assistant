@@ -138,6 +138,8 @@ export interface components {
             conversation_id?: string | null;
             /** Tier Override */
             tier_override?: ("small" | "large") | null;
+            /** Levers */
+            levers?: string[] | null;
             /** History */
             history?: components["schemas"]["HistoryMessage"][];
         };

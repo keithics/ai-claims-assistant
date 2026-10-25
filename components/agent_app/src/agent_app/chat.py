@@ -11,10 +11,11 @@ from agent_app.agent import AgentResult, run_agent
 from agent_app.approval import ApprovalService
 from agent_app.classify import classify
 from agent_app.i18n import handoff_message, notice
+from agent_app.levers import UnknownLeverError, parse_levers
 from agent_app.llm import ChatClient, ModelError
-from agent_app.prompts import build_messages
+from agent_app.prompts import CONCISE_HINTS, build_messages, cap_history
 from agent_app.schemas import ChatRequest, ChatResponse, Citation, Route, Usage
-from agent_app.tools import ClaimsGateway, ToolContext
+from agent_app.tools import TOOL_SPECS, ClaimsGateway, ToolContext, compact_specs
 from country_packs import CountryPack
 from rag import PolicyDocument, RetrievedChunk, Retriever
 from router import BudgetState, Intent, Risk, RouteDecision, RouteRequest, RoutingConfig, route
@@ -50,6 +51,7 @@ class ChatService:
     budget_state: Callable[[str], BudgetState] = _always_ok
     allow_tier_override: bool = False
     env: str = "unknown"
+    levers: frozenset[str] = frozenset()
     clock: Callable[[], float] = time.perf_counter
 
     def answer(self, request: ChatRequest) -> ChatResponse:
@@ -100,29 +102,49 @@ class ChatService:
                 pending_approvals=[],
                 usage=self._handoff_usage(decision, intent, risk, started),
             )
+        levers = self._levers(request)
+        fired: set[str] = set()
         history = [{"role": m.role, "content": m.content} for m in request.history]
+        if "history_cap" in levers:
+            capped = cap_history(history)
+            if capped != history:
+                fired.add("history_cap")
+            history = capped
         messages = build_messages(
-            request.message, request.language, pack.name, history, pack.human_handoff
+            request.message,
+            request.language,
+            pack.name,
+            history,
+            pack.human_handoff,
+            compact="compact_prompts" in levers,
+            style=CONCISE_HINTS[intent] if "concise_style" in levers else None,
         )
+        fired |= levers & {"compact_prompts", "concise_style"}
         attempts = [decision.deployment or self.deployment, *decision.fallbacks]
-        max_tokens = decision.max_output_tokens or self.max_output_tokens
+        max_tokens = self._max_tokens(decision, levers, fired)
         used = attempts[0]
         failure: ModelError | None = None
         result: AgentResult | None = None
         for used in attempts:
+            ctx = ToolContext(
+                country=pack.code,
+                language=request.language,
+                retriever=self.retriever,
+                claims=self.claims,
+                levers=levers,
+            )
             try:
                 result = run_agent(
                     chat=self.chat,
                     deployment=used,
                     messages=messages,
-                    ctx=ToolContext(
-                        country=pack.code,
-                        language=request.language,
-                        retriever=self.retriever,
-                        claims=self.claims,
-                    ),
+                    ctx=ctx,
                     max_steps=self.max_steps,
                     max_output_tokens=max_tokens,
+                    tools=compact_specs(TOOL_SPECS) if "compact_prompts" in levers else None,
+                    cache_key=(
+                        f"{pack.code}:{request.language}" if "prompt_cache_key" in levers else None
+                    ),
                     prompt_content=content_for_logging(
                         request.message, env=self.env, log_prompts=pack.log_prompts
                     ),
@@ -143,6 +165,8 @@ class ChatService:
             intent,
             risk,
             fallback_used=used != attempts[0],
+            fired=fired | ctx.fired,
+            levers=levers,
         )
         set_attributes(
             span,
@@ -169,6 +193,24 @@ class ChatService:
             pending_approvals=[self.approvals.issue(draft) for draft in result.drafts],
             usage=usage,
         )
+
+    def _levers(self, request: ChatRequest) -> frozenset[str]:
+        if request.levers is None:
+            return self.levers
+        if not self.allow_tier_override:
+            raise RequestError("levers can only be chosen per request when overrides are enabled")
+        try:
+            return parse_levers(request.levers)
+        except UnknownLeverError as exc:
+            raise RequestError(str(exc)) from exc
+
+    def _max_tokens(self, decision: RouteDecision, levers: frozenset[str], fired: set[str]) -> int:
+        if "output_limits" in levers and decision.max_output_tokens:
+            fired.add("output_limits")
+            return decision.max_output_tokens
+        if decision.tier == "large" and decision.max_output_tokens:
+            return decision.max_output_tokens
+        return self.max_output_tokens
 
     def _decide(
         self, request: ChatRequest, pack: CountryPack, intent: Intent, risk: Risk
@@ -231,6 +273,8 @@ class ChatService:
         risk: str,
         *,
         fallback_used: bool,
+        fired: set[str] | None = None,
+        levers: frozenset[str] = frozenset(),
     ) -> Usage:
         cost = sum(
             (
@@ -239,9 +283,12 @@ class ChatService:
             ),
             Decimal(0),
         )
-        levers = ["routing"] if self.routing is not None else []
+        levers_fired = ["routing"] if self.routing is not None else []
+        levers_fired += sorted(fired or ())
+        if "prompt_cache_key" in levers and sum(c.cached_tokens for c in result.completions) > 0:
+            levers_fired.append("prompt_cache_key")
         if fallback_used:
-            levers.append("fallback")
+            levers_fired.append("fallback")
         return Usage(
             route=Route(
                 tier=self.tiers[deployment],
@@ -256,7 +303,7 @@ class ChatService:
             cost_usd=float(cost),
             latency_ms=latency_ms,
             cache_hit=False,
-            levers_fired=levers,
+            levers_fired=levers_fired,
             steps_used=result.steps_used,
             loop_capped=result.loop_capped,
             tool_calls=[record.name for record in result.tool_calls],

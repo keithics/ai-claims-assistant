@@ -75,6 +75,7 @@ class RuleBasedChat:
         country: str,
         max_output_tokens: int,
         tools: Sequence[dict[str, Any]] | None = None,
+        cache_key: str | None = None,
     ) -> Completion:
         size = len(json.dumps(list(messages), default=str))
         last = messages[-1]

@@ -38,6 +38,7 @@ class ChatClient(Protocol):
         country: str,
         max_output_tokens: int,
         tools: Sequence[dict[str, Any]] | None = None,
+        cache_key: str | None = None,
     ) -> Completion: ...
 
 
@@ -99,6 +100,7 @@ class GatewayChatClient:
         country: str,
         max_output_tokens: int,
         tools: Sequence[dict[str, Any]] | None = None,
+        cache_key: str | None = None,
     ) -> Completion:
         tier = self._tiers.get(deployment)
         if tier is None:
@@ -109,6 +111,8 @@ class GatewayChatClient:
             options["reasoning_effort"] = self._reasoning_effort
         if tools:
             options["tools"] = list(tools)
+        if cache_key:
+            options["prompt_cache_key"] = cache_key
         try:
             response = client.chat.completions.create(
                 model=deployment,

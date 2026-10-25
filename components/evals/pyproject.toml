@@ -16,6 +16,7 @@ dependencies = [
 [project.scripts]
 run-evals = "evals.run_evals:main"
 propose-routing = "evals.propose_routing:main"
+compare-runs = "evals.compare:main"
 
 [tool.uv.sources]
 country_packs = { workspace = true }

@@ -2,6 +2,7 @@ import os
 from collections.abc import Mapping
 from dataclasses import dataclass
 
+from agent_app.levers import UnknownLeverError, parse_levers
 from shared import EndpointError, check_gateway_url, gateway_keys_from_env
 
 
@@ -26,6 +27,7 @@ class Settings:
     approval_ttl_seconds: int = 900
     claims_api_key: str = ""
     allow_tier_override: bool = False
+    levers: frozenset[str] = frozenset()
     routing_path: str = ""
     budget_state_account_url: str = ""
     budget_state_container: str = "budget-state"
@@ -38,6 +40,10 @@ class Settings:
         if missing:
             raise ConfigError(f"missing environment variable(s): {', '.join(missing)}")
         keys = gateway_keys_from_env(values)
+        try:
+            levers = parse_levers(values.get("AGENT_LEVERS", "").split(","))
+        except UnknownLeverError as exc:
+            raise ConfigError(str(exc)) from exc
         if not keys:
             raise ConfigError("no GATEWAY_KEY_<COUNTRY> variables are set")
         try:
@@ -73,6 +79,7 @@ class Settings:
             allow_tier_override=values.get("AGENT_ALLOW_TIER_OVERRIDE", "").lower()
             in {"1", "true"},
             routing_path=values.get("ROUTING_CONFIG_PATH", ""),
+            levers=levers,
             budget_state_account_url=values.get("BUDGET_STATE_ACCOUNT_URL", ""),
             budget_state_container=values.get("BUDGET_STATE_CONTAINER", "budget-state"),
         )

@@ -2,6 +2,10 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from agent_app.prompts import DOC_CLOSE, DOC_OPEN, neutralize
 from agent_app.tools.base import ToolContext, ToolOutcome
+from rag import trim_chunks
+
+TRIM_CHUNKS = 3
+TRIM_TOKENS = 450
 
 
 class SearchPolicyArgs(BaseModel):
@@ -27,6 +31,11 @@ SPEC = {
 
 def run(args: SearchPolicyArgs, ctx: ToolContext) -> ToolOutcome:
     chunks = ctx.retriever.retrieve(args.query, ctx.country, ctx.language)
+    if "retrieval_trim" in ctx.levers:
+        trimmed = trim_chunks(chunks, max_chunks=TRIM_CHUNKS, max_tokens=TRIM_TOKENS)
+        chunks = trimmed.chunks
+        if trimmed.changed:
+            ctx.fired.add("retrieval_trim")
     if not chunks:
         return ToolOutcome("No policy documents matched. Say so and offer a human agent.")
     blocks = []

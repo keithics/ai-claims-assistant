@@ -64,6 +64,8 @@ class CaseResult:
     cost_usd: float = 0.0
     latency_ms: int = 0
     fallback_used: bool = False
+    cached_tokens: int = 0
+    levers_fired: list[str] = field(default_factory=list)
     scores: dict[str, float | None] = field(default_factory=dict)
     judge_reasons: dict[str, str] = field(default_factory=dict)
     error: str | None = None
@@ -76,8 +78,10 @@ class AgentClient:
         *,
         client: httpx.Client | None = None,
         sleep: Callable[[float], None] = time.sleep,
+        levers: Sequence[str] | None = None,
     ) -> None:
         self._sleep = sleep
+        self._levers = list(levers) if levers is not None else None
         self._http = client or httpx.Client(base_url=base_url.rstrip("/"), timeout=120.0)
 
     def chat(self, case: GoldenCase, tier: str) -> dict[str, Any]:
@@ -87,6 +91,8 @@ class AgentClient:
             "language": case.language,
             "tier_override": tier,
         }
+        if self._levers is not None:
+            payload["levers"] = self._levers
         last: httpx.Response | None = None
         for attempt in range(len(RETRY_WAITS) + 1):
             last = self._http.post("/chat", json=payload)
@@ -240,6 +246,8 @@ def score_case(
         cost_usd=usage["cost_usd"],
         latency_ms=usage["latency_ms"],
         fallback_used=bool(usage.get("fallback_used", False)),
+        cached_tokens=usage.get("cached_tokens", 0),
+        levers_fired=list(usage.get("levers_fired", [])),
     )
     result.scores = deterministic_scores(case, answer, tools, cited, len(pending))
     if judge is not None:

@@ -6,7 +6,7 @@ from agent_app.tools.claims_client import (
     ClaimsGateway,
     RestrictedClaims,
 )
-from agent_app.tools.registry import TOOL_SPECS, TOOLS, canonical_key, execute
+from agent_app.tools.registry import TOOL_SPECS, TOOLS, canonical_key, compact_specs, execute
 
 __all__ = [
     "TOOLS",
@@ -19,5 +19,6 @@ __all__ = [
     "ToolContext",
     "ToolOutcome",
     "canonical_key",
+    "compact_specs",
     "execute",
 ]

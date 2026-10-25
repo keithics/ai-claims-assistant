@@ -17,6 +17,26 @@ TOOLS: dict[str, tuple[type[BaseModel], Runner]] = {
     "draft_claim": (draft_claim.DraftClaimArgs, draft_claim.run),
 }
 
+COMPACT_DESCRIPTIONS = {
+    "search_policy": "Search the user's country policy documents.",
+    "get_claim_status": "Get a claim's status by claim number.",
+    "draft_claim": "Prepare a claim draft (never files it).",
+}
+
+
+def compact_specs(specs: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    compact: list[dict[str, Any]] = []
+    for spec in specs:
+        function = dict(spec["function"])
+        function["description"] = COMPACT_DESCRIPTIONS[function["name"]]
+        parameters = json.loads(json.dumps(function["parameters"]))
+        for prop in parameters.get("properties", {}).values():
+            prop.pop("description", None)
+        function["parameters"] = parameters
+        compact.append({"type": "function", "function": function})
+    return compact
+
+
 TOOL_SPECS: list[dict[str, Any]] = [
     search_policy.SPEC,
     get_claim_status.SPEC,

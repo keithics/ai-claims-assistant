@@ -292,6 +292,21 @@
             ],
             "title": "Tier Override"
           },
+          "levers": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array",
+                "maxItems": 10
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Levers"
+          },
           "history": {
             "items": {
               "$ref": "#/components/schemas/HistoryMessage"

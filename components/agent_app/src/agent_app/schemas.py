@@ -18,6 +18,7 @@ class ChatRequest(BaseModel):
     language: str = Field(min_length=2, max_length=3)
     conversation_id: str | None = Field(default=None, max_length=64)
     tier_override: Literal["small", "large"] | None = None
+    levers: list[str] | None = Field(default=None, max_length=10)
     history: list[HistoryMessage] = Field(default_factory=list, max_length=20)
 
 
