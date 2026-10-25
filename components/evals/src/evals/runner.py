@@ -85,7 +85,7 @@ class AgentClient:
         self._http = client or httpx.Client(base_url=base_url.rstrip("/"), timeout=120.0)
 
     def chat(self, case: GoldenCase, tier: str) -> dict[str, Any]:
-        payload = {
+        payload: dict[str, Any] = {
             "message": case.input,
             "country": case.country,
             "language": case.language,
