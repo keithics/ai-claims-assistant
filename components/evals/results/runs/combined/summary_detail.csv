@@ -1,0 +1,7 @@
+language,model,cases,errors,coherence,language_fit,polite_form,source_hit
+en,small,10,0,0.8750,1.0000,,0.8000
+fil,small,10,0,1.0000,1.0000,,0.8000
+ceb,small,10,0,1.0000,1.0000,,0.4000
+id,small,10,0,1.0000,1.0000,,1.0000
+th,small,10,1,1.0000,1.0000,,1.0000
+ja,small,10,1,1.0000,1.0000,1.0000,1.0000

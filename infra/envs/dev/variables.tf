@@ -182,3 +182,9 @@ variable "budget_function_package" {
   description = "Path to the zip from make package-budget. Null leaves code deployment to a human."
   default     = null
 }
+
+variable "enable_semantic_cache" {
+  type        = bool
+  description = "FAQ semantic cache in the gateway, backed by Azure Managed Redis with RediSearch. It bills by the hour, so turn it on for a measurement and off again."
+  default     = false
+}

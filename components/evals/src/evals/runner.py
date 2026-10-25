@@ -71,6 +71,22 @@ class CaseResult:
     error: str | None = None
 
 
+def build_history(case: GoldenCase, pool: Sequence[GoldenCase], turns: int) -> list[dict[str, str]]:
+    earlier = [
+        c
+        for c in pool
+        if c.id != case.id
+        and c.country == case.country
+        and c.language == case.language
+        and c.case_type in ("faq", "country_rule")
+    ][:turns]
+    history: list[dict[str, str]] = []
+    for prior in earlier:
+        history.append({"role": "user", "content": prior.input})
+        history.append({"role": "assistant", "content": prior.expected_answer[:400]})
+    return history
+
+
 class AgentClient:
     def __init__(
         self,
@@ -79,7 +95,11 @@ class AgentClient:
         client: httpx.Client | None = None,
         sleep: Callable[[float], None] = time.sleep,
         levers: Sequence[str] | None = None,
+        history_turns: int = 0,
+        pool: Sequence[GoldenCase] = (),
     ) -> None:
+        self._history_turns = history_turns
+        self._pool = list(pool)
         self._sleep = sleep
         self._levers = list(levers) if levers is not None else None
         self._http = client or httpx.Client(base_url=base_url.rstrip("/"), timeout=120.0)
@@ -93,6 +113,8 @@ class AgentClient:
         }
         if self._levers is not None:
             payload["levers"] = self._levers
+        if self._history_turns:
+            payload["history"] = build_history(case, self._pool, self._history_turns)
         last: httpx.Response | None = None
         for attempt in range(len(RETRY_WAITS) + 1):
             last = self._http.post("/chat", json=payload)

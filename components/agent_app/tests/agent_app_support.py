@@ -91,6 +91,7 @@ class ScriptedChat:
         max_output_tokens: int,
         tools: Sequence[dict[str, Any]] | None = None,
         cache_key: str | None = None,
+        intent: str | None = None,
     ) -> Completion:
         self.calls.append(
             {
@@ -100,6 +101,7 @@ class ScriptedChat:
                 "max": max_output_tokens,
                 "tools": tools,
                 "cache_key": cache_key,
+                "intent": intent,
             }
         )
         if self.script is not None:

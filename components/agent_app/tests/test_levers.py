@@ -174,3 +174,10 @@ def test_a_prompt_cache_key_is_sent_only_when_the_lever_is_on(
     assert chat_client.calls[-1].get("cache_key") is None
     ask(routed(service), levers=["prompt_cache_key"])
     assert chat_client.calls[-1].get("cache_key") == "ph:en"
+
+
+def test_the_routed_intent_is_passed_down_to_the_model_client(
+    service: ChatService, chat_client: ScriptedChat
+) -> None:
+    ask(routed(service), "How many days do I have to report?")
+    assert chat_client.calls[-1]["intent"] == "country_rule"

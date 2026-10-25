@@ -225,3 +225,35 @@ run "country_must_be_a_supported_market" {
 
   expect_failures = [var.countries]
 }
+
+run "semantic_cache_creates_redis_with_search_and_registers_it_only_when_enabled" {
+  command = plan
+
+  variables {
+    semantic_cache_enabled = true
+  }
+
+  assert {
+    condition     = length(azurerm_managed_redis.cache) == 1 && azurerm_managed_redis.cache["main"].default_database[0].module[0].name == "RediSearch"
+    error_message = "The cache needs Azure Managed Redis with the RediSearch module."
+  }
+
+  assert {
+    condition     = length(azurerm_api_management_redis_cache.this) == 1 && azurerm_api_management_backend.embeddings_cache["main"].url == "https://ais-test.openai.azure.com/openai/deployments/embedding/embeddings"
+    error_message = "The cache must be registered with API Management and use its own embeddings backend."
+  }
+
+  assert {
+    condition     = strcontains(azurerm_api_management_api_policy.model["small"].xml_content, "llm-semantic-cache-lookup") && strcontains(azurerm_api_management_api_policy.model["small"].xml_content, "embeddings-backend-id=\"embeddings-cache\"")
+    error_message = "The model policy must look up through the embeddings-cache backend."
+  }
+}
+
+run "semantic_cache_is_absent_by_default" {
+  command = plan
+
+  assert {
+    condition     = length(azurerm_managed_redis.cache) == 0 && length(azurerm_api_management_redis_cache.this) == 0 && !strcontains(azurerm_api_management_api_policy.model["small"].xml_content, "llm-semantic-cache")
+    error_message = "No Redis and no cache policies unless the lever is on."
+  }
+}

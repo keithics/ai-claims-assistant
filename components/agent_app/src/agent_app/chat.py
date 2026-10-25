@@ -142,6 +142,7 @@ class ChatService:
                     max_steps=self.max_steps,
                     max_output_tokens=max_tokens,
                     tools=compact_specs(TOOL_SPECS) if "compact_prompts" in levers else None,
+                    intent=intent,
                     cache_key=(
                         f"{pack.code}:{request.language}" if "prompt_cache_key" in levers else None
                     ),

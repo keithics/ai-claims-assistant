@@ -203,6 +203,7 @@ module "apim_gateway" {
   application_insights_connection_string = module.observability.application_insights_connection_string
   key_vault_id                           = module.keyvault.id
   extra_allowed_addresses                = var.apim_extra_allowed_addresses
+  semantic_cache_enabled                 = var.enable_semantic_cache
 
   depends_on = [module.keyvault]
 }

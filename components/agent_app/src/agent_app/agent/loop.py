@@ -49,6 +49,7 @@ def run_agent(
     prompt_content: str | None = None,
     tools: list[dict[str, Any]] | None = None,
     cache_key: str | None = None,
+    intent: str | None = None,
 ) -> AgentResult:
     conversation = list(messages)
     completions: list[Completion] = []
@@ -72,6 +73,7 @@ def run_agent(
                     max_output_tokens=max_output_tokens,
                     tools=tools if tools is not None else TOOL_SPECS,
                     cache_key=cache_key,
+                    intent=intent,
                 )
             except Exception as exc:
                 mark_error(span, exc)

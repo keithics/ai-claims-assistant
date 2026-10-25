@@ -124,3 +124,12 @@ def test_the_large_reasoning_model_is_asked_for_low_effort_and_small_is_not() ->
     client.complete(msg, deployment="small-a", country="ph", max_output_tokens=50)
     assert json.loads(seen[0].content)["reasoning_effort"] == "low"
     assert "reasoning_effort" not in json.loads(seen[1].content)
+
+
+def test_the_intent_is_sent_to_the_gateway_so_it_can_cache_faq_answers_only() -> None:
+    client, seen = make()
+    msg = [{"role": "user", "content": "hi"}]
+    client.complete(msg, deployment="small-a", country="ph", max_output_tokens=5, intent="faq")
+    client.complete(msg, deployment="small-a", country="ph", max_output_tokens=5)
+    assert seen[0].headers["x-intent"] == "faq"
+    assert "x-intent" not in seen[1].headers

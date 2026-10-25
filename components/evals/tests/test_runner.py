@@ -289,3 +289,17 @@ def test_rescoring_updates_saved_cases_without_calling_the_agent_chat(tmp_path: 
         or "claim_status" not in changed
     )
     assert all(r.scores["groundedness"] == 0.25 for r in rescored if r.case_type != "claim_status")
+
+
+def test_a_long_conversation_prefix_uses_earlier_cases_of_the_same_country_and_language() -> None:
+    from evals.runner import build_history
+
+    case = next(c for c in CASES if c.language == "th" and c.case_type == "claim_status")
+    history = build_history(case, CASES, 3)
+    assert len(history) == 6 and [m["role"] for m in history] == ["user", "assistant"] * 3
+    earlier = {
+        c.input for c in CASES if c.language == "th" and c.case_type in ("faq", "country_rule")
+    }
+    assert all(m["content"] for m in history)
+    assert {m["content"] for m in history[::2]} <= earlier
+    assert build_history(case, CASES, 0) == []

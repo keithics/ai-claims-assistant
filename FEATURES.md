@@ -356,56 +356,56 @@ Each lever is behind a flag (default off), measured on the golden set before and
 ### F-045 · Prompt cache-friendly ordering
 - **Component:** `components/agent_app`
 - **Depends on:** F-036
-- **Status:** todo
+- **Status:** done
 - **Build:** stable system prompt and tool definitions first, variable content last; record cached input tokens.
 - **Done when:** before/after cached-token share and cost recorded.
 
 ### F-046 · Retrieval trimming
 - **Component:** `components/rag`
 - **Depends on:** F-036
-- **Status:** todo
+- **Status:** done
 - **Build:** configurable `top_k`, chunk deduplication, optional re-ranking, token budget for retrieved context.
 - **Done when:** before/after input tokens and groundedness recorded per language.
 
 ### F-047 · Conversation history cap and summarization
 - **Component:** `components/agent_app`
 - **Depends on:** F-036
-- **Status:** todo
+- **Status:** done
 - **Build:** keep the last N turns verbatim; summarise older turns with the small model.
 - **Done when:** a long-conversation eval set shows tokens per turn before/after and no quality drop past the bar.
 
 ### F-048 · Compact prompts and tool schemas
 - **Component:** `components/agent_app`
 - **Depends on:** F-036
-- **Status:** todo
+- **Status:** done
 - **Build:** shorten the system prompt and tool descriptions; measure each change.
 - **Done when:** before/after input tokens per call and tool accuracy recorded.
 
 ### F-049 · Output length limits per intent
 - **Component:** `components/router`
 - **Depends on:** F-039
-- **Status:** todo
+- **Status:** done
 - **Build:** `max_output_tokens` and a concise-style instruction per intent in `routing.yaml`.
 - **Done when:** before/after output tokens and relevance recorded.
 
 ### F-050 · Semantic cache
 - **Component:** `components/gateway`, `infra/modules/apim_gateway`
 - **Depends on:** F-032, F-036
-- **Status:** todo
+- **Status:** in-progress
 - **Build:** turn on the FAQ semantic cache with its Redis dependency behind `enable_semantic_cache` (default false, because it bills hourly). Measure, then turn it off again unless the human says otherwise.
 - **Done when:** hit rate, savings and any wrong cached answers recorded.
 
 ### F-051 · Batch evaluation runs
 - **Component:** `components/evals`
 - **Depends on:** F-036
-- **Status:** todo
+- **Status:** blocked
 - **Build:** `--batch` mode using batch processing where available for the deployment.
 - **Done when:** cost per full eval run before/after recorded.
 
 ### F-052 · Optimization summary
 - **Component:** `docs/unit-economics.md`
 - **Depends on:** F-045 to F-051
-- **Status:** todo
+- **Status:** done
 - **Build:** one table: lever, tokens saved, cost saved, quality change, latency change, decision (on/off). Plus tokens per case by language.
 - **Done when:** every number traces to a saved eval run.
 

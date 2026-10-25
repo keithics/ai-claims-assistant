@@ -23,3 +23,7 @@ components/evals/results/*
 !components/evals/results/summary.csv
 
 .DS_Store
+
+# lever measurement runs behind docs/unit-economics.md
+!components/evals/results/runs/
+!components/evals/results/runs/**

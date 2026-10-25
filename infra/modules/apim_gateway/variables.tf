@@ -247,8 +247,14 @@ variable "claims_calls_per_minute" {
 
 variable "semantic_cache_enabled" {
   type        = bool
-  description = "Semantic cache for the FAQ route. Off by default; it needs an external cache attached to the instance, which this module does not create yet (M6 lever)."
+  description = "Semantic cache for the FAQ route. Off by default because it needs Azure Managed Redis with the RediSearch module, which bills by the hour. Turning it on creates the cache, registers it with API Management and adds the lookup and store policies."
   default     = false
+}
+
+variable "redis_sku_name" {
+  type        = string
+  description = "Azure Managed Redis SKU for the semantic cache. The smallest Balanced size is enough for FAQ answers."
+  default     = "Balanced_B0"
 }
 
 variable "semantic_cache_threshold" {

@@ -135,6 +135,50 @@ resource "azapi_resource" "small_pool" {
   }
 }
 
+locals {
+  semantic_cache = var.semantic_cache_enabled ? { main = true } : {}
+}
+
+# The cache looks answers up by embedding the prompt, so it needs its own backend that points at
+# the embeddings operation itself (the model APIs append the operation path instead).
+resource "azurerm_api_management_backend" "embeddings_cache" {
+  for_each = local.semantic_cache
+
+  name                = "embeddings-cache"
+  api_management_name = azurerm_api_management.this.name
+  resource_group_name = var.resource_group_name
+  protocol            = "http"
+  url                 = "${local.openai_base}/openai/deployments/${var.model_deployments.embedding}/embeddings"
+}
+
+resource "azurerm_managed_redis" "cache" {
+  for_each = local.semantic_cache
+
+  name                = "redis-${var.name_prefix}"
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  sku_name            = var.redis_sku_name
+  tags                = var.tags
+
+  default_database {
+    clustering_policy = "EnterpriseCluster"
+    eviction_policy   = "NoEviction"
+
+    module {
+      name = "RediSearch"
+    }
+  }
+}
+
+resource "azurerm_api_management_redis_cache" "this" {
+  for_each = local.semantic_cache
+
+  name              = "semantic-cache"
+  api_management_id = azurerm_api_management.this.id
+  cache_location    = "default"
+  connection_string = "${azurerm_managed_redis.cache[each.key].hostname}:10000,password=${azurerm_managed_redis.cache[each.key].default_database[0].primary_access_key},ssl=True,abortConnect=False"
+}
+
 resource "azurerm_api_management_backend" "claims" {
   for_each = local.claims_enabled
 
@@ -203,13 +247,13 @@ resource "azurerm_api_management_api_policy" "model" {
     semantic_cache_threshold    = var.semantic_cache_threshold
     semantic_cache_max_messages = 3
     semantic_cache_ttl_seconds  = var.semantic_cache_ttl_seconds
-    embeddings_backend_id       = var.model_deployments.embedding
+    embeddings_backend_id       = var.semantic_cache_enabled ? azurerm_api_management_backend.embeddings_cache["main"].name : var.model_deployments.embedding
     model_backend_id            = each.value.backend_id
     retry_count                 = var.retry_count
     max_concurrent_per_country  = var.max_concurrent_per_country
   })
 
-  depends_on = [azapi_resource.small_pool, azurerm_api_management_backend.model, azapi_resource.diagnostic]
+  depends_on = [azapi_resource.small_pool, azurerm_api_management_backend.model, azapi_resource.diagnostic, azurerm_api_management_redis_cache.this]
 }
 
 resource "azurerm_api_management_product" "models" {

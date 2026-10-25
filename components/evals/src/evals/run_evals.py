@@ -40,6 +40,12 @@ def main(argv: list[str] | None = None) -> int:
         default=None,
         help="comma list of token levers to switch on for this run (empty = all off)",
     )
+    parser.add_argument(
+        "--history-turns",
+        type=int,
+        default=0,
+        help="prefix every case with N earlier question/answer pairs (long-conversation set)",
+    )
     parser.add_argument("--no-judge", action="store_true", help="skip model-graded scores")
     args = parser.parse_args(argv)
 
@@ -85,9 +91,13 @@ def main(argv: list[str] | None = None) -> int:
 
     cases = select_cases(load_golden(args.golden), languages, args.sample)
     print(f"run-evals: {len(cases)} cases x {len(models)} model(s)", flush=True)
-    results = run_all(
-        cases, models, AgentClient(args.agent_url, levers=levers), judge, args.workers
+    client = AgentClient(
+        args.agent_url,
+        levers=levers,
+        history_turns=args.history_turns,
+        pool=load_golden(args.golden),
     )
+    results = run_all(cases, models, client, judge, args.workers)
     write_outputs(results, args.out)
     errors = sum(r.error is not None for r in results)
     for row in summarize(results):
