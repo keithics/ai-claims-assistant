@@ -4,7 +4,7 @@ Things only a human can do or approve. Agents never run these. Tick them off as 
 
 ## Project wrap-up: what is left for you (2026-10-26)
 
-Everything in the backlog is built except two features that are blocked on purpose (F-040 CI gate, F-051 batch evaluation) and one that is built but not measured (F-050 semantic cache). These are the human steps that remain, in a sensible order.
+53 of 58 features are done. Waiting on you: F-038 (review the routing proposal), F-044 (deploy the budget function) and F-050 (approve a semantic-cache measurement). Blocked on purpose: F-040 (CI gate) and F-051 (batch evaluation, not feasible). These are the human steps that remain, in a sensible order.
 
 **Do now**
 - [ ] `make apply ENV=dev`: one pending change (the gateway now logs successful requests as well as errors, so the dashboard's 429 rate has a correct denominator). The subscriptions no longer drift, because debug tracing is explicitly off.
