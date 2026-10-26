@@ -156,3 +156,9 @@ variable "agent_levers" {
   description = "Comma-separated token levers switched on in agent_app. The measured recommendation is compact_prompts,retrieval_trim (docs/unit-economics.md)."
   default     = "compact_prompts,retrieval_trim"
 }
+
+variable "infrastructure_subnet_id" {
+  type        = string
+  description = "Subnet (at least /23) for the environment when private networking is on. Null keeps the environment on the platform network."
+  default     = null
+}

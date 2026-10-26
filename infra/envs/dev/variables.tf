@@ -188,3 +188,9 @@ variable "enable_semantic_cache" {
   description = "FAQ semantic cache in the gateway, backed by Azure Managed Redis with RediSearch. It bills by the hour, so turn it on for a measurement and off again."
   default     = false
 }
+
+variable "enable_private_networking" {
+  type        = bool
+  description = "Put AI Services, Search, Storage and Key Vault behind private endpoints and turn their public access off. Private endpoints bill by the hour, Search needs the basic SKU or above, and you can no longer reach these services from outside the network (make ingest included)."
+  default     = false
+}

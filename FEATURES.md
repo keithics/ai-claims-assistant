@@ -416,42 +416,42 @@ Each lever is behind a flag (default off), measured on the golden set before and
 ### F-053 · Content safety and prompt shields
 - **Component:** `infra/modules/ai_foundry`, `components/agent_app`
 - **Depends on:** F-033
-- **Status:** todo
+- **Status:** done
 - **Build:** content filter and prompt shield configuration on the deployments; agent handles a filtered response with a safe, localized message.
 - **Done when:** adversarial golden cases pass; filtered responses are counted in telemetry.
 
 ### F-054 · Prompt-injection document test
 - **Component:** `tools/inject_poison_doc.py`, `tests/integration`
 - **Depends on:** F-053
-- **Status:** todo
+- **Status:** done
 - **Build:** plants a document with injected instructions in one country's index; integration test asserts the agent does not call `draft_claim` or approve anything and still answers safely.
 - **Done when:** the test passes; the tool can remove the document again.
 
 ### F-055 · Private networking toggle
 - **Component:** `infra/modules/network`, `infra/modules/private_endpoints`
 - **Depends on:** F-029, F-032
-- **Status:** todo
+- **Status:** done
 - **Build:** VNet, subnets, private DNS zones and private endpoints for AI Services, Search, Storage and Key Vault when `enable_private_networking = true`; public access disabled in that mode.
 - **Done when:** `make plan` passes with the flag on and off; README notes the hourly cost of private endpoints.
 
 ### F-056 · Architecture decision records
 - **Component:** `docs/adr`
 - **Depends on:** F-044
-- **Status:** todo
+- **Status:** done
 - **Build:** the five ADRs listed in `AGENTS.md` plus the budget-state store choice, one page each.
 - **Done when:** each ADR names the options considered and links to the code or numbers behind the decision.
 
 ### F-057 · Regulatory notes
 - **Component:** `docs/regulatory.md`
 - **Depends on:** F-012
-- **Status:** todo
+- **Status:** done
 - **Build:** per-country table for PH, SG, ID, TH, JP: data law, sector regulator, residency choice, logging and retention settings from the country pack. "Not legal advice; verify with official sources" at the top.
 - **Done when:** every row matches the values in its country pack.
 
 ### F-058 · README, walkthrough and one-pager
 - **Component:** `README.md`, `docs/walkthrough.md`, `docs/executive-one-pager.md`, `docs/architecture.md`
 - **Depends on:** F-052, F-056
-- **Status:** todo
+- **Status:** in-progress
 - **Build:** README (what it is, architecture diagram, deploy, tear down, running cost, known limits); a step-by-step walkthrough of the main flows; a one-page summary of outcome, cost per resolved conversation by country, risks and controls, and recommendation.
 - **Done when:** a fresh reader can deploy and tear down following the README alone; all numbers come from saved runs.
 

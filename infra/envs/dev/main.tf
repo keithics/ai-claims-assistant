@@ -50,6 +50,8 @@ data "azurerm_client_config" "current" {}
 module "keyvault" {
   source = "../../modules/keyvault"
 
+  public_network_access_enabled = !var.enable_private_networking
+
   name                = module.naming.names.key_vault
   location            = var.location
   resource_group_name = azurerm_resource_group.main.name
@@ -66,6 +68,8 @@ module "keyvault" {
 
 module "storage" {
   source = "../../modules/storage"
+
+  public_network_access_enabled = !var.enable_private_networking
 
   name                = module.naming.names.storage_account
   location            = var.location
@@ -96,6 +100,8 @@ locals {
 module "ai_foundry" {
   source = "../../modules/ai_foundry"
 
+  public_network_access_enabled = !var.enable_private_networking
+
   name                = module.naming.names.ai_services
   project_name        = module.naming.names.foundry_project
   location            = var.location
@@ -113,6 +119,8 @@ module "ai_foundry" {
 
 module "ai_search" {
   source = "../../modules/ai_search"
+
+  public_network_access_enabled = !var.enable_private_networking
 
   name                = module.naming.names.search_service
   location            = var.location
@@ -173,6 +181,7 @@ module "container_apps" {
   claims_key_secret_id             = try(module.apim_gateway["main"].claims_key_secret_id, null)
   budget_state_account_url         = trimsuffix(module.storage.blob_endpoint, "/")
   budget_state_storage_id          = module.storage.id
+  infrastructure_subnet_id         = try(module.network["main"].subnet_ids["apps"], null)
   search_endpoint                  = module.ai_search.endpoint
   allowed_ip_ranges                = var.allowed_ip_ranges
   acknowledge_unrestricted_ingress = var.acknowledge_unrestricted_ingress
@@ -236,4 +245,69 @@ resource "azurerm_role_assignment" "deployer_telemetry" {
   scope                = module.observability.application_insights_id
   role_definition_name = "Monitoring Metrics Publisher"
   principal_id         = data.azurerm_client_config.current.object_id
+}
+
+locals {
+  private_networking = var.enable_private_networking ? { main = true } : {}
+}
+
+resource "terraform_data" "private_networking_checks" {
+  for_each = local.private_networking
+
+  lifecycle {
+    precondition {
+      condition     = var.search_sku != "free"
+      error_message = "AI Search cannot use a private endpoint on the free SKU. Set search_sku = \"basic\" (it bills hourly) or leave enable_private_networking off."
+    }
+  }
+}
+
+module "network" {
+  source   = "../../modules/network"
+  for_each = local.private_networking
+
+  name_prefix         = module.naming.name_prefix
+  location            = var.location
+  resource_group_name = azurerm_resource_group.main.name
+  tags                = module.naming.tags
+
+  depends_on = [terraform_data.private_networking_checks]
+}
+
+module "private_endpoints" {
+  source   = "../../modules/private_endpoints"
+  for_each = local.private_networking
+
+  name_prefix         = module.naming.name_prefix
+  location            = var.location
+  resource_group_name = azurerm_resource_group.main.name
+  tags                = module.naming.tags
+  subnet_id           = module.network["main"].subnet_ids["private-endpoints"]
+
+  endpoints = {
+    ai = {
+      resource_id      = module.ai_foundry.account_id
+      subresource_name = "account"
+      dns_zone_ids = [
+        module.network["main"].private_dns_zone_ids["privatelink.cognitiveservices.azure.com"],
+        module.network["main"].private_dns_zone_ids["privatelink.openai.azure.com"],
+        module.network["main"].private_dns_zone_ids["privatelink.services.ai.azure.com"],
+      ]
+    }
+    search = {
+      resource_id      = module.ai_search.id
+      subresource_name = "searchService"
+      dns_zone_ids     = [module.network["main"].private_dns_zone_ids["privatelink.search.windows.net"]]
+    }
+    blob = {
+      resource_id      = module.storage.id
+      subresource_name = "blob"
+      dns_zone_ids     = [module.network["main"].private_dns_zone_ids["privatelink.blob.core.windows.net"]]
+    }
+    vault = {
+      resource_id      = module.keyvault.id
+      subresource_name = "vault"
+      dns_zone_ids     = [module.network["main"].private_dns_zone_ids["privatelink.vaultcore.azure.net"]]
+    }
+  }
 }
