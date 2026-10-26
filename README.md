@@ -12,7 +12,7 @@
 
 A production-minded **multilingual claims assistant** and the engineering around it: an agent with tools and human approval, retrieval, a model router, a gateway, an evaluation harness, observability and infrastructure as code, built end to end and measured.
 
-It is a portfolio project by [keithics](https://github.com/keithics), built to show how I approach AI systems: design, measurement, safety and operations. The insurer, *Kalayaan Mutual*, is **fictional** and all data is synthetic, but the engineering questions are the real ones: what does an answer cost, which model should have given it, is it safe, and how do you know?
+It is a portfolio project that shows how I approach AI systems: design, measurement, safety and operations. The insurer, *Kalayaan Mutual*, is **fictional** and all data is synthetic, but the engineering questions are the real ones: what does an answer cost, which model should have given it, is it safe, and how do you know?
 
 ## What this demonstrates
 
