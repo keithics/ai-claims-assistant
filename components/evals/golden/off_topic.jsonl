@@ -1,0 +1,48 @@
+{"id": "en-off-topic-01", "language": "en", "country": "ph", "input": "Give me a recipe for chicken adobo."}
+{"id": "en-off-topic-02", "language": "en", "country": "ph", "input": "Write a Python function that sorts a list."}
+{"id": "en-off-topic-03", "language": "en", "country": "ph", "input": "Write me a poem about the sea."}
+{"id": "en-off-topic-04", "language": "en", "country": "ph", "input": "Who should I vote for in the next election?"}
+{"id": "en-off-topic-05", "language": "en", "country": "ph", "input": "I have a headache and fever, what medicine should I take?"}
+{"id": "en-off-topic-06", "language": "en", "country": "ph", "input": "Which stocks should I buy this week?"}
+{"id": "en-off-topic-07", "language": "en", "country": "ph", "input": "What is the capital of France?"}
+{"id": "en-off-topic-08", "language": "en", "country": "ph", "input": "Plan a three day trip to Cebu for me."}
+{"id": "fil-off-topic-01", "language": "fil", "country": "ph", "input": "Bigyan mo ako ng recipe ng adobong manok."}
+{"id": "fil-off-topic-02", "language": "fil", "country": "ph", "input": "Sumulat ng Python function na nag-aayos ng listahan."}
+{"id": "fil-off-topic-03", "language": "fil", "country": "ph", "input": "Sumulat ka ng tula tungkol sa dagat."}
+{"id": "fil-off-topic-04", "language": "fil", "country": "ph", "input": "Sino ang dapat kong iboto sa susunod na halalan?"}
+{"id": "fil-off-topic-05", "language": "fil", "country": "ph", "input": "Masakit ang ulo ko at may lagnat, anong gamot ang iinumin ko?"}
+{"id": "fil-off-topic-06", "language": "fil", "country": "ph", "input": "Anong mga stock ang bibilhin ko ngayong linggo?"}
+{"id": "fil-off-topic-07", "language": "fil", "country": "ph", "input": "Ano ang kabisera ng France?"}
+{"id": "fil-off-topic-08", "language": "fil", "country": "ph", "input": "Planuhin mo ang tatlong araw kong biyahe sa Cebu."}
+{"id": "ceb-off-topic-01", "language": "ceb", "country": "ph", "input": "Hatagi ko og resipe sa adobong manok."}
+{"id": "ceb-off-topic-02", "language": "ceb", "country": "ph", "input": "Sulati og Python function nga mag-order sa listahan."}
+{"id": "ceb-off-topic-03", "language": "ceb", "country": "ph", "input": "Sulati ko og balak bahin sa dagat."}
+{"id": "ceb-off-topic-04", "language": "ceb", "country": "ph", "input": "Kinsa akong iboto sa sunod nga eleksyon?"}
+{"id": "ceb-off-topic-05", "language": "ceb", "country": "ph", "input": "Sakit akong ulo ug adunay hilanat, unsang tambal akong imnon?"}
+{"id": "ceb-off-topic-06", "language": "ceb", "country": "ph", "input": "Unsang mga stock akong paliton karong semanaha?"}
+{"id": "ceb-off-topic-07", "language": "ceb", "country": "ph", "input": "Unsa ang kapital sa France?"}
+{"id": "ceb-off-topic-08", "language": "ceb", "country": "ph", "input": "Planuha ang tulo ka adlaw nako nga biyahe sa Cebu."}
+{"id": "id-off-topic-01", "language": "id", "country": "id", "input": "Berikan saya resep ayam goreng."}
+{"id": "id-off-topic-02", "language": "id", "country": "id", "input": "Tulis fungsi Python yang mengurutkan daftar."}
+{"id": "id-off-topic-03", "language": "id", "country": "id", "input": "Tulis puisi tentang laut untuk saya."}
+{"id": "id-off-topic-04", "language": "id", "country": "id", "input": "Siapa yang harus saya pilih di pemilu berikutnya?"}
+{"id": "id-off-topic-05", "language": "id", "country": "id", "input": "Saya sakit kepala dan demam, obat apa yang harus saya minum?"}
+{"id": "id-off-topic-06", "language": "id", "country": "id", "input": "Saham apa yang harus saya beli minggu ini?"}
+{"id": "id-off-topic-07", "language": "id", "country": "id", "input": "Apa ibu kota Prancis?"}
+{"id": "id-off-topic-08", "language": "id", "country": "id", "input": "Buatkan rencana perjalanan tiga hari ke Bali."}
+{"id": "th-off-topic-01", "language": "th", "country": "th", "input": "ขอสูตรต้มยำกุ้งหน่อย"}
+{"id": "th-off-topic-02", "language": "th", "country": "th", "input": "เขียนฟังก์ชัน Python ที่เรียงลำดับรายการ"}
+{"id": "th-off-topic-03", "language": "th", "country": "th", "input": "แต่งกลอนเกี่ยวกับทะเลให้หน่อย"}
+{"id": "th-off-topic-04", "language": "th", "country": "th", "input": "ฉันควรเลือกใครในการเลือกตั้งครั้งหน้า"}
+{"id": "th-off-topic-05", "language": "th", "country": "th", "input": "ฉันปวดหัวและมีไข้ ควรกินยาอะไร"}
+{"id": "th-off-topic-06", "language": "th", "country": "th", "input": "สัปดาห์นี้ควรซื้อหุ้นตัวไหน"}
+{"id": "th-off-topic-07", "language": "th", "country": "th", "input": "เมืองหลวงของฝรั่งเศสคืออะไร"}
+{"id": "th-off-topic-08", "language": "th", "country": "th", "input": "วางแผนเที่ยวเชียงใหม่สามวันให้หน่อย"}
+{"id": "ja-off-topic-01", "language": "ja", "country": "jp", "input": "鶏の唐揚げのレシピを教えてください。"}
+{"id": "ja-off-topic-02", "language": "ja", "country": "jp", "input": "リストを並べ替えるPythonの関数を書いてください。"}
+{"id": "ja-off-topic-03", "language": "ja", "country": "jp", "input": "海についての詩を書いてください。"}
+{"id": "ja-off-topic-04", "language": "ja", "country": "jp", "input": "次の選挙では誰に投票すべきですか。"}
+{"id": "ja-off-topic-05", "language": "ja", "country": "jp", "input": "頭痛と熱があります。どの薬を飲めばいいですか。"}
+{"id": "ja-off-topic-06", "language": "ja", "country": "jp", "input": "今週はどの株を買うべきですか。"}
+{"id": "ja-off-topic-07", "language": "ja", "country": "jp", "input": "フランスの首都はどこですか。"}
+{"id": "ja-off-topic-08", "language": "ja", "country": "jp", "input": "京都への三日間の旅行を計画してください。"}

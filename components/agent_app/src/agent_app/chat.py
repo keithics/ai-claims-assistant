@@ -10,11 +10,19 @@ from opentelemetry.trace import Span
 from agent_app.agent import AgentResult, run_agent
 from agent_app.approval import ApprovalService
 from agent_app.classify import classify
-from agent_app.i18n import filtered_message, handoff_message, notice
+from agent_app.i18n import (
+    filtered_message,
+    handoff_message,
+    notice,
+    out_of_scope_message,
+    self_harm_message,
+)
 from agent_app.levers import UnknownLeverError, parse_levers
 from agent_app.llm import ChatClient, ContentFilteredError, ModelError
 from agent_app.prompts import CONCISE_HINTS, build_messages, cap_history
+from agent_app.safety import is_self_harm
 from agent_app.schemas import ChatRequest, ChatResponse, Citation, Route, Usage
+from agent_app.scope import ScopeGuard
 from agent_app.tools import TOOL_SPECS, ClaimsGateway, ToolContext, compact_specs
 from country_packs import CountryPack
 from rag import PolicyDocument, RetrievedChunk, Retriever
@@ -52,6 +60,7 @@ class ChatService:
     allow_tier_override: bool = False
     env: str = "unknown"
     levers: frozenset[str] = frozenset()
+    scope: ScopeGuard | None = None
     clock: Callable[[], float] = time.perf_counter
 
     def answer(self, request: ChatRequest) -> ChatResponse:
@@ -80,6 +89,34 @@ class ChatService:
         self, request: ChatRequest, pack: CountryPack, conversation_id: str, span: Span
     ) -> ChatResponse:
         started = self.clock()
+        if is_self_harm(request.message):
+            return self._stop(
+                request,
+                pack,
+                conversation_id,
+                span,
+                answer=self_harm_message(request.language, pack.human_handoff),
+                lever="self_harm_response",
+                reason="the message suggests self-harm: fixed caring reply, no model call",
+                started=started,
+            )
+        if self.scope is not None:
+            outside, score = self.scope.out_of_scope(
+                request.message, pack.code, has_history=bool(request.history)
+            )
+            if score is not None:
+                set_attributes(span, {"scope_score": round(score, 4)})
+            if outside:
+                return self._stop(
+                    request,
+                    pack,
+                    conversation_id,
+                    span,
+                    answer=out_of_scope_message(request.language, pack.name, pack.human_handoff),
+                    lever="scope_guard",
+                    reason=f"closer to off-topic requests than to claims (margin {score:.2f})",
+                    started=started,
+                )
         intent, risk = classify(request.message, pack.code)
         decision = self._decide(request, pack, intent, risk)
         record_route(
@@ -208,6 +245,45 @@ class ChatService:
             notice=notice_text,
             pending_approvals=[self.approvals.issue(draft) for draft in result.drafts],
             usage=usage,
+        )
+
+    def _stop(
+        self,
+        request: ChatRequest,
+        pack: CountryPack,
+        conversation_id: str,
+        span: Span,
+        *,
+        answer: str,
+        lever: str,
+        reason: str,
+        started: float,
+    ) -> ChatResponse:
+        set_attributes(
+            span, {"outcome": lever, "cost_usd": 0.0, "steps_used": 0, "route_tier": lever}
+        )
+        return ChatResponse(
+            conversation_id=conversation_id,
+            country=pack.code,
+            language=request.language,
+            answer=answer,
+            citations=[],
+            notice=notice(request.language, pack.human_handoff),
+            pending_approvals=[],
+            usage=Usage(
+                route=Route(
+                    tier=lever, reason=reason, deployment="none", intent="other", risk="low"
+                ),
+                input_tokens=0,
+                output_tokens=0,
+                cached_tokens=0,
+                cost_usd=0.0,
+                latency_ms=round((self.clock() - started) * 1000),
+                cache_hit=False,
+                levers_fired=[lever],
+                steps_used=0,
+                loop_capped=False,
+            ),
         )
 
     def _levers(self, request: ChatRequest) -> frozenset[str]:

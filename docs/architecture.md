@@ -28,9 +28,10 @@ flowchart LR
 1. The browser posts the message, country, language and the history it holds to `agent_app`.
 2. `classify` gives an intent and a risk with keyword rules; `route` combines them with the country's allowed tiers and its budget state and returns a deployment, fallbacks and an output limit, or a human handoff.
 3. The agent loop calls the model through the gateway with the country's subscription key. It can use three tools: `search_policy` (always filtered to the country), `get_claim_status` (the country's claims only) and `draft_claim` (returns a draft and an approval token).
-4. Retrieved text and tool results are wrapped in delimiters and treated as data. The content filter and prompt shields on the deployments block harmful or injected prompts; a blocked turn returns a safe localized message.
-5. The response carries the answer, citations, pending approvals and a `usage` block (route, tokens, cost, latency, levers fired) that the usage panel shows without touching telemetry stores.
-6. A human reviews a draft on the approval screen; `/approve` verifies the signed, expiring, single-use token and only then asks the claims system to file it.
+4. Before any of that, two cheap checks run without a model call. A rule-based self-harm check returns a fixed, caring reply with the human contact. A scope guard embeds the message once and, if it is closer to off-topic requests than to claims, returns a fixed redirect. Follow-ups and claim numbers skip the scope guard.
+5. Retrieved text and tool results are wrapped in delimiters and treated as data. The content filter and prompt shields on the deployments block harmful or injected prompts; a blocked turn returns a safe localized message.
+6. The response carries the answer, citations, pending approvals and a `usage` block (route, tokens, cost, latency, levers fired) that the usage panel shows without touching telemetry stores.
+7. A human reviews a draft on the approval screen; `/approve` verifies the signed, expiring, single-use token and only then asks the claims system to file it.
 
 ## Trust boundaries
 

@@ -1,5 +1,5 @@
 import os
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from contextlib import asynccontextmanager
 from typing import Any
 
@@ -23,11 +23,23 @@ from agent_app.schemas import (
     DocumentView,
     RejectResponse,
 )
+from agent_app.scope import ScopeGuard
 from agent_app.tools import ClaimsClient, RestrictedClaims
 from country_packs import load_country_packs, load_model_catalog, prices_from_catalog
 from rag import AzureSearchBackend, OpenAIEmbedder, Retriever, load_policy_documents
 from router import BudgetState
 from telemetry import app_env, configure
+
+
+def _topics(documents: Mapping[str, object]) -> dict[str, list[str]]:
+    topics: dict[str, list[str]] = {}
+    for doc in documents.values():
+        title = getattr(doc, "title", "")
+        country = getattr(doc, "country", "")
+        body = str(getattr(doc, "body", ""))
+        headings = [line.lstrip("# ").strip() for line in body.splitlines() if line.startswith("#")]
+        topics.setdefault(country, []).extend([title, *headings])
+    return {c: sorted(set(t for t in items if t)) for c, items in topics.items()}
 
 
 def build_service(settings: Settings) -> ChatService:
@@ -38,15 +50,17 @@ def build_service(settings: Settings) -> ChatService:
             f"AGENT_CHAT_DEPLOYMENT {settings.chat_deployment!r} is not in models.yaml; "
             f"known: {', '.join(sorted(catalog.deployments))}"
         )
+    embedder = OpenAIEmbedder(
+        settings.gateway_url,
+        settings.gateway_keys,
+        settings.embedding_deployment,
+        settings.api_version,
+        app="agent_app",
+    )
+    policy_documents = {d.doc_id: d for d in load_policy_documents(packs=packs)}
     retriever = Retriever(
         AzureSearchBackend(settings.search_endpoint, settings.index_name),
-        OpenAIEmbedder(
-            settings.gateway_url,
-            settings.gateway_keys,
-            settings.embedding_deployment,
-            settings.api_version,
-            app="agent_app",
-        ),
+        embedder,
         packs,
         top_k=settings.top_k,
     )
@@ -74,11 +88,16 @@ def build_service(settings: Settings) -> ChatService:
         prices=prices_from_catalog(catalog),
         tiers={name: d.tier for name, d in catalog.deployments.items()},
         max_steps=settings.max_steps,
-        documents={d.doc_id: d for d in load_policy_documents(packs=packs)},
+        documents=policy_documents,
         routing=load_routing(settings.routing_path, catalog.deployments),
         allow_tier_override=settings.allow_tier_override,
         levers=settings.levers,
         budget_state=_budget_state(settings),
+        scope=(
+            ScopeGuard(embedder, _topics(policy_documents), settings.scope_margin)
+            if settings.scope_guard
+            else None
+        ),
     )
 
 

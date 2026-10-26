@@ -58,7 +58,7 @@ It is a portfolio project that shows how I approach AI systems: design, measurem
 | Agent | Three tools (`search_policy`, `get_claim_status`, `draft_claim`), step cap, loop detection |
 | Routing | Small, large or human handoff from language, intent, risk and budget state |
 | Gateway | Cloudflare-only IP filter, per-country token limits, model pool with failover, token metrics |
-| Safety | Content filter, prompt shields, retrieved text treated as data, poisoned-document test |
+| Safety | A rule-based self-harm reply and an embedding scope guard that answer without calling a model, content filter and prompt shields, retrieved text treated as data, poisoned-document test, a 48-prompt harmful set and a 48-prompt off-topic set in six languages |
 
 ## Quick start
 

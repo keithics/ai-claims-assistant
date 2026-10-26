@@ -28,6 +28,8 @@ class Settings:
     claims_api_key: str = ""
     allow_tier_override: bool = False
     levers: frozenset[str] = frozenset()
+    scope_guard: bool = True
+    scope_margin: float = -0.04
     routing_path: str = ""
     budget_state_account_url: str = ""
     budget_state_container: str = "budget-state"
@@ -80,6 +82,8 @@ class Settings:
             in {"1", "true"},
             routing_path=values.get("ROUTING_CONFIG_PATH", ""),
             levers=levers,
+            scope_guard=values.get("AGENT_SCOPE_GUARD", "on").lower() not in {"off", "0", "false"},
+            scope_margin=float(values.get("AGENT_SCOPE_MARGIN", "-0.04")),
             budget_state_account_url=values.get("BUDGET_STATE_ACCOUNT_URL", ""),
             budget_state_container=values.get("BUDGET_STATE_CONTAINER", "budget-state"),
         )
