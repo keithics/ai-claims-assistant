@@ -4,7 +4,7 @@ Status: accepted (2026-10-25)
 
 ## Context
 
-Every model call, embedding call and claims API call needs the same controls: a token limit per country, token metrics with dimensions (country, app, model, route tier), failover when a deployment returns 429, and no personal data in forwarded headers. Doing that in each app would mean five copies of the logic and no single place to turn a country off. There is also no user sign-in, so the only things between the internet and spendable tokens are Cloudflare Access, an IP filter and per-country keys.
+Every model call, embedding call and claims API call needs the same controls: a token limit per country, token metrics with dimensions (country, app, model, route tier), failover when a deployment returns 429, and no personal data in forwarded headers. Doing that in each app would mean five copies of the logic and no single place to turn a country off. This is a proof of concept, so it deliberately has no user sign-in: the things between the internet and spendable tokens are Cloudflare Access, an IP filter and per-country keys. That is acceptable for a PoC with synthetic data and not for production (see *Proof of concept versus production* below).
 
 ## Options
 
@@ -53,3 +53,20 @@ A shared cache can leak or poison answers, so the lever is built with these limi
 - The cache is partitioned by the authenticated product (which fixes the country; the product policy returns 403 if `x-country` differs), the validated language and the route tier, not by a raw client header. Unknown languages are never cached.
 - Only successful (200) answers are stored, and `ignore-system-messages` is on.
 - Before turning it on, measure wrong-hit rate on the golden FAQ cases and review the cached answers; the score threshold stays at 0.05 (strict).
+
+## Proof of concept versus production
+
+What this repository does is a PoC posture, chosen to keep the build small. What a production deployment should do instead:
+
+| Concern | PoC (here) | Production practice |
+|---|---|---|
+| User identity | None. Cloudflare Access plus an IP allowlist; the allowlist is shared by every Cloudflare customer, so it is not a login | Sign in every user (Entra ID or the customer's IdP) and validate the token at the gateway and in the app; derive the user and country from the token, not from headers the client sends |
+| Spend control | Per-country subscription keys and token limits | Add per-user and per-session limits, so one account cannot spend a country's budget |
+| Gateway access | Public hostname, IP filter and keys | Private endpoint or VNet integration (the network toggle exists), a WAF in front, keys rotated from Key Vault |
+| Gateway tier | Developer tier, no SLA, single instance | A tier with an SLA and zone redundancy |
+| Secrets | Country keys in Key Vault read at start | Managed identity to the gateway where possible, short-lived tokens |
+| Residency | One region, global deployments (ADR-003) | Regional or data-zone deployments per market |
+| Approval token | Held by the browser, single-use, bound to the draft | Also tied to the signed-in user and recorded in an audit log |
+| State | In memory, one replica | A durable store for used tokens and drafts, multiple replicas |
+
+None of these changes the design of the agent, the router or the evaluation harness; they sit around them.

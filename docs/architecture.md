@@ -36,7 +36,7 @@ flowchart LR
 
 | Boundary | Control |
 |---|---|
-| Internet to the app | Cloudflare Access; the gateway and the container apps accept only Cloudflare IP ranges (not a login: the ranges are shared) |
+| Internet to the app | PoC only: Cloudflare Access and Cloudflare-only IP ranges at the gateway and apps (not a login: the ranges are shared). Production: authenticate every user and validate the token (ADR-001) |
 | App to models | Only through the gateway; per-country subscription keys in Key Vault; a test fails on any direct model hostname |
 | Model to tools | Three tools only; the agent can draft but never file or approve; retrieved text cannot change that (poison-document test) |
 | Claims | Filing needs an HMAC token bound to the exact draft, expiring after 15 minutes, usable once, held only by the browser |

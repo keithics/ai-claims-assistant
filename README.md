@@ -219,7 +219,7 @@ This is a prototype and has not been security reviewed. To report a problem, ope
 
 Things to know before relying on it:
 
-- **No in-app sign-in.** Access is meant to be Cloudflare Access plus an IP allow list; until that is set up, run it locally.
+- **No in-app sign-in, because this is a proof of concept.** Access is meant to be Cloudflare Access plus an IP allow list, which is fine for synthetic data and not for production, where every user signs in and spend is limited per user (the production list is in [ADR-001](docs/adr/0001-gateway-in-front-of-all-models.md)). Until that is set up, run it locally.
 - The Cloudflare IP ranges are shared by every Cloudflare customer, so the filter is not a login; a country key is also required.
 - **Data residency is declared, not enforced:** country packs name regions, but all models run on global deployments in one region (ADR-003).
 - Intent and risk classification is keyword rules tuned on the golden set; real traffic will find gaps.

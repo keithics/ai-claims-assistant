@@ -28,7 +28,7 @@ Assumption (not measured): a human-handled contact costs several dollars. Even a
 | Prompt injection | Content filter and prompt shields on the deployments, retrieved text treated as data | Built; live check pending an apply |
 | Runaway spend | Per-country token limits at the gateway, monthly budget states with downgrade and handoff, $50 budget alert | Gateway verified under load; the budget function is not deployed |
 | Personal data in logs | No prompt text outside dev; redaction in dev | Tested |
-| No sign-in | Cloudflare Access plus IP allowlist (not a login) | Not yet set up |
+| No sign-in (a deliberate PoC shortcut) | Cloudflare Access plus IP allowlist (not a login). Production practice: sign in every user and limit spend per user (ADR-001) | Not yet set up |
 | Data residency | Packs declare regions; infrastructure does not yet enforce them | Gap (ADR-003) |
 | Content quality | Translations, documents and test cases are machine-written | No native-speaker review yet |
 
