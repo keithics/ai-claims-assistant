@@ -374,9 +374,9 @@ dd {
 }
 
 .usage-total {
-  margin-top: 12px;
-  padding-top: 8px;
-  border-top: 1px solid var(--border);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
 }
 
 .card {

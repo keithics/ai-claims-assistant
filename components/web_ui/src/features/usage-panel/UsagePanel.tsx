@@ -26,6 +26,25 @@ export function UsagePanel({ turns }: { turns: TurnUsage[] }) {
       {open && (
         <div id="usage-body">
           {turns.length === 0 && <p className="empty">{t("usage.empty")}</p>}
+          {turns.length > 0 && (
+            <section aria-labelledby="usage-total" className="usage-total">
+              <h3 id="usage-total">{t("usage.total")}</h3>
+              <dl>
+                <dt>{t("usage.inputTokens")}</dt>
+                <dd>{number(sum.inputTokens)}</dd>
+                <dt>{t("usage.outputTokens")}</dt>
+                <dd>{number(sum.outputTokens)}</dd>
+                <dt>{t("usage.cachedTokens")}</dt>
+                <dd>{number(sum.cachedTokens)}</dd>
+                <dt>{t("usage.cost")}</dt>
+                <dd>{formatCost(sum.cost)}</dd>
+                <dt>{t("usage.latency")}</dt>
+                <dd>{formatLatency(sum.latencyMs)}</dd>
+                <dt>{t("usage.steps")}</dt>
+                <dd>{number(sum.modelCalls)}</dd>
+              </dl>
+            </section>
+          )}
           {turns.map((turn, index) => {
             const u = turn.usage;
             const headingId = `usage-turn-${turn.id}`;
@@ -68,25 +87,6 @@ export function UsagePanel({ turns }: { turns: TurnUsage[] }) {
               </section>
             );
           })}
-          {turns.length > 0 && (
-            <section aria-labelledby="usage-total" className="usage-total">
-              <h3 id="usage-total">{t("usage.total")}</h3>
-              <dl>
-                <dt>{t("usage.inputTokens")}</dt>
-                <dd>{number(sum.inputTokens)}</dd>
-                <dt>{t("usage.outputTokens")}</dt>
-                <dd>{number(sum.outputTokens)}</dd>
-                <dt>{t("usage.cachedTokens")}</dt>
-                <dd>{number(sum.cachedTokens)}</dd>
-                <dt>{t("usage.cost")}</dt>
-                <dd>{formatCost(sum.cost)}</dd>
-                <dt>{t("usage.latency")}</dt>
-                <dd>{formatLatency(sum.latencyMs)}</dd>
-                <dt>{t("usage.steps")}</dt>
-                <dd>{number(sum.modelCalls)}</dd>
-              </dl>
-            </section>
-          )}
         </div>
       )}
     </aside>

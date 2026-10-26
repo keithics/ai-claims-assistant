@@ -81,6 +81,19 @@ describe("UsagePanel", () => {
     expect(row(turn, "Input tokens")).toHaveTextContent("0");
   });
 
+  it("puts the conversation total first, then the turns in order", () => {
+    show([normal, cacheHit, { id: "c", usage: usage({ input_tokens: 800 }) }]);
+    const headings = screen
+      .getAllByRole("heading", { level: 3 })
+      .map((heading) => heading.textContent);
+    expect(headings).toEqual([
+      "Conversation total",
+      "Turn 1",
+      "Turn 2",
+      "Turn 3",
+    ]);
+  });
+
   it("keeps a running total across turns, including a free cache hit", () => {
     show([
       normal,
