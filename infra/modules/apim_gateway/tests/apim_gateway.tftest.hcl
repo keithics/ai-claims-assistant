@@ -40,6 +40,20 @@ run "gateway_uses_a_tier_with_token_limits_and_a_managed_identity" {
   }
 }
 
+run "gateway_telemetry_uses_its_own_identity_because_key_ingestion_is_off" {
+  command = plan
+
+  assert {
+    condition     = azurerm_role_assignment.telemetry.role_definition_name == "Monitoring Metrics Publisher" && azurerm_role_assignment.telemetry.scope == var.application_insights_id
+    error_message = "The gateway needs Monitoring Metrics Publisher on Application Insights."
+  }
+
+  assert {
+    condition     = azurerm_api_management_logger.app_insights.application_insights[0].identity_client_id == "SystemAssigned"
+    error_message = "The logger must authenticate with the gateway identity."
+  }
+}
+
 run "consumption_tier_is_rejected" {
   command = plan
 

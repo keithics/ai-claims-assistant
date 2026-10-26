@@ -54,6 +54,14 @@ resource "azurerm_role_assignment" "openai_user" {
   principal_id         = azurerm_api_management.this.identity[0].principal_id
 }
 
+# Key-based ingestion is off on Application Insights, so the gateway sends logs and token metrics
+# with its own identity.
+resource "azurerm_role_assignment" "telemetry" {
+  scope                = var.application_insights_id
+  role_definition_name = "Monitoring Metrics Publisher"
+  principal_id         = azurerm_api_management.this.identity[0].principal_id
+}
+
 resource "azurerm_api_management_logger" "app_insights" {
   name                = "appinsights"
   api_management_name = azurerm_api_management.this.name
@@ -61,8 +69,11 @@ resource "azurerm_api_management_logger" "app_insights" {
   resource_id         = var.application_insights_id
 
   application_insights {
-    connection_string = var.application_insights_connection_string
+    connection_string  = var.application_insights_connection_string
+    identity_client_id = "SystemAssigned"
   }
+
+  depends_on = [azurerm_role_assignment.telemetry]
 }
 
 # azurerm_api_management_diagnostic has no `metrics` argument, and llm-emit-token-metric needs it on.

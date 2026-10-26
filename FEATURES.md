@@ -451,7 +451,7 @@ Each lever is behind a flag (default off), measured on the golden set before and
 ### F-058 · README, walkthrough and one-pager
 - **Component:** `README.md`, `docs/walkthrough.md`, `docs/executive-one-pager.md`, `docs/architecture.md`
 - **Depends on:** F-052, F-056
-- **Status:** in-progress
+- **Status:** done
 - **Build:** README (what it is, architecture diagram, deploy, tear down, running cost, known limits); a step-by-step walkthrough of the main flows; a one-page summary of outcome, cost per resolved conversation by country, risks and controls, and recommendation.
 - **Done when:** a fresh reader can deploy and tear down following the README alone; all numbers come from saved runs.
 

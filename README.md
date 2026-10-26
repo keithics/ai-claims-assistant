@@ -34,9 +34,10 @@ flowchart LR
 | Country packs | `components/country_packs` | One YAML per market, plus the model catalogue and prices |
 | Shared | `components/shared` | Pricing, redaction, approval tokens, endpoint checks |
 | Web UI | `components/web_ui` | Chat with citations, approval screen, usage side panel |
-| Telemetry, budget controller | `components/telemetry`, `components/budget_controller` | Scaffolded; built in milestone M5 |
+| Telemetry | `components/telemetry` | OpenTelemetry spans, KQL queries and the four-tab workbook |
+| Budget controller | `components/budget_controller` | Timer function: spend per country to `ok`, `warn`, `exceeded` |
 
-Infrastructure is Terraform in `infra/` (modules plus an `envs/dev` composition). Decisions are in `docs/adr/`, and progress is logged one line per feature in `docs/progress.md`. The backlog is `FEATURES.md`; the working rules for coding agents are in `AGENTS.md`.
+Infrastructure is Terraform in `infra/` (modules plus an `envs/dev` composition). Start with `docs/architecture.md` and `docs/walkthrough.md`; decisions are in `docs/adr/`, numbers in `docs/unit-economics.md` and `docs/load-test.md`, regulatory notes in `docs/regulatory.md`, a one-page summary in `docs/executive-one-pager.md`, and progress is logged one line per feature in `docs/progress.md`. The backlog is `FEATURES.md`; the working rules for coding agents are in `AGENTS.md`.
 
 ## Try it locally
 
@@ -74,7 +75,7 @@ All Azure resources are created by Terraform. Nothing is applied for you.
 
 1. Copy `infra/envs/dev/terraform.tfvars.example` to `terraform.tfvars` and fill in your subscription, owner and alert email (the file is gitignored).
 2. `make plan ENV=dev`, review, then `make apply ENV=dev`. The $50 monthly budget alert is created first.
-3. Optional pieces are behind flags in `terraform.tfvars`: `enable_apim` (the gateway) and `enable_container_apps` (hosting the three apps).
+3. Optional pieces are behind flags in `terraform.tfvars`: `enable_apim` (the gateway), `enable_container_apps` (hosting the three apps), `enable_budget_function` (budget controller), `enable_semantic_cache` (hourly billing) and `enable_private_networking` (private endpoints, hourly billing).
 
 `MANUAL.md` lists every step that only a human can do (applies, Cloudflare Access, registry, quotas).
 
@@ -96,5 +97,7 @@ All Azure resources are created by Terraform. Nothing is applied for you.
 - `agent_app` and `claims_api` keep state in memory, so they run as a single replica.
 - Translations, policy documents and the golden set are machine-written and not reviewed by native speakers (`reviewed_by_native` is false everywhere).
 - There is no CI yet (deferred by decision); the workflows in `.github/workflows` are inert.
-- Not built yet: telemetry and the budget controller (M5), the token-optimisation measurements (M6), content-safety configuration and the final decision pack (M7).
+- The budget controller is built and tested but not deployed; the semantic cache is built but not applied or measured; private networking is planned only.
+- The CI gate (F-040) and batch evaluation (F-051) are not built, by decision or because they are not feasible.
+- The model prompt shield did not block one classic jailbreak prompt in a live check (the model itself declined); treat it as a layer, not a guarantee.
 - This is not legal advice, and nothing here reflects a real insurer or real regulation.
