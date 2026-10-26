@@ -303,3 +303,15 @@ def test_a_long_conversation_prefix_uses_earlier_cases_of_the_same_country_and_l
     assert all(m["content"] for m in history)
     assert {m["content"] for m in history[::2]} <= earlier
     assert build_history(case, CASES, 0) == []
+
+
+def test_cases_can_be_limited_to_some_types() -> None:
+    chosen = select_cases(CASES, ["en", "ja"], None, ["adversarial"])
+    assert len(chosen) == 10 and {c.case_type for c in chosen} == {"adversarial"}
+    assert len(select_cases(CASES, ["en"], None, ["faq", "claim_status"])) == 10
+    assert len(select_cases(CASES, ["en"], None, None)) == 30
+
+
+def test_the_cli_rejects_an_unknown_case_type(capsys: pytest.CaptureFixture[str]) -> None:
+    assert main(["--agent-url", "http://a", "--no-judge", "--case-types", "chitchat"]) == 2
+    assert "unknown case type" in capsys.readouterr().err

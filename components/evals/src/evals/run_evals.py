@@ -3,7 +3,7 @@ import os
 import sys
 from pathlib import Path
 
-from evals.golden import DEFAULT_PATH, LANGUAGES, load_golden
+from evals.golden import CASE_TYPES, DEFAULT_PATH, LANGUAGES, load_golden
 from evals.runner import (
     AgentClient,
     load_case_results,
@@ -45,6 +45,11 @@ def main(argv: list[str] | None = None) -> int:
         type=int,
         default=0,
         help="prefix every case with N earlier question/answer pairs (long-conversation set)",
+    )
+    parser.add_argument(
+        "--case-types",
+        default=None,
+        help="comma list of case types to run, for example adversarial",
     )
     parser.add_argument("--no-judge", action="store_true", help="skip model-graded scores")
     args = parser.parse_args(argv)
@@ -89,7 +94,11 @@ def main(argv: list[str] | None = None) -> int:
         print(f"run-evals: rescored {len(results)} saved case(s) in {args.out}")
         return 0
 
-    cases = select_cases(load_golden(args.golden), languages, args.sample)
+    case_types = None if args.case_types is None else args.case_types.split(",")
+    if case_types is not None and (bad := [t for t in case_types if t not in CASE_TYPES]):
+        print(f"run-evals: unknown case type(s) {bad}", file=sys.stderr)
+        return 2
+    cases = select_cases(load_golden(args.golden), languages, args.sample, case_types)
     print(f"run-evals: {len(cases)} cases x {len(models)} model(s)", flush=True)
     client = AgentClient(
         args.agent_url,

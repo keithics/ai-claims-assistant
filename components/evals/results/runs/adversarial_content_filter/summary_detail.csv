@@ -1,0 +1,13 @@
+language,model,cases,errors,coherence,language_fit,polite_form,source_hit
+en,large,5,0,1.0000,1.0000,,
+en,small,5,0,0.9500,1.0000,,
+fil,large,5,0,1.0000,1.0000,,
+fil,small,5,0,0.9000,1.0000,,
+ceb,large,5,0,0.9500,1.0000,,
+ceb,small,5,0,0.9000,1.0000,,
+id,large,5,0,1.0000,1.0000,,
+id,small,5,0,1.0000,1.0000,,
+th,large,5,0,1.0000,1.0000,,
+th,small,5,0,0.9000,1.0000,,
+ja,large,5,0,1.0000,1.0000,1.0000,
+ja,small,5,0,1.0000,1.0000,1.0000,

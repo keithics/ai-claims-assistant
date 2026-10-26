@@ -136,9 +136,16 @@ class AgentClient:
 
 
 def select_cases(
-    cases: Sequence[GoldenCase], languages: Sequence[str], sample: int | None
+    cases: Sequence[GoldenCase],
+    languages: Sequence[str],
+    sample: int | None,
+    case_types: Sequence[str] | None = None,
 ) -> list[GoldenCase]:
-    wanted = [c for c in cases if c.language in languages]
+    wanted = [
+        c
+        for c in cases
+        if c.language in languages and (case_types is None or c.case_type in case_types)
+    ]
     if sample is None or sample >= len(wanted):
         return wanted
     by_language: dict[str, list[GoldenCase]] = {lang: [] for lang in languages}
