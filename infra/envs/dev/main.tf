@@ -85,9 +85,10 @@ locals {
 
   model_deployments = {
     for name, d in local.model_catalog.deployments : name => {
-      model_name    = d.model
-      model_version = d.version
-      capacity      = var.model_capacity[d.tier]
+      model_name     = d.model
+      model_version  = d.version
+      capacity       = var.model_capacity[d.tier]
+      content_filter = d.tier != "embedding"
     }
   }
 }

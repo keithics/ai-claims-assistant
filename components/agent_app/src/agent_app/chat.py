@@ -10,9 +10,9 @@ from opentelemetry.trace import Span
 from agent_app.agent import AgentResult, run_agent
 from agent_app.approval import ApprovalService
 from agent_app.classify import classify
-from agent_app.i18n import handoff_message, notice
+from agent_app.i18n import filtered_message, handoff_message, notice
 from agent_app.levers import UnknownLeverError, parse_levers
-from agent_app.llm import ChatClient, ModelError
+from agent_app.llm import ChatClient, ContentFilteredError, ModelError
 from agent_app.prompts import CONCISE_HINTS, build_messages, cap_history
 from agent_app.schemas import ChatRequest, ChatResponse, Citation, Route, Usage
 from agent_app.tools import TOOL_SPECS, ClaimsGateway, ToolContext, compact_specs
@@ -152,6 +152,20 @@ class ChatService:
                     ),
                 )
                 break
+            except ContentFilteredError:
+                set_attributes(span, {"outcome": "content_filtered", "content_filtered": True})
+                return ChatResponse(
+                    conversation_id=conversation_id,
+                    country=pack.code,
+                    language=request.language,
+                    answer=filtered_message(request.language, pack.human_handoff),
+                    citations=[],
+                    notice=notice_text,
+                    pending_approvals=[],
+                    usage=self._handoff_usage(
+                        decision, intent, risk, started, tier="filtered", lever="content_filter"
+                    ),
+                )
             except ModelError as exc:
                 failure = exc
         if result is None:
@@ -244,11 +258,18 @@ class ChatService:
         return route(route_request, self.routing, self.budget_state(pack.code))
 
     def _handoff_usage(
-        self, decision: RouteDecision, intent: str, risk: str, started: float
+        self,
+        decision: RouteDecision,
+        intent: str,
+        risk: str,
+        started: float,
+        *,
+        tier: str = "handoff",
+        lever: str = "handoff",
     ) -> Usage:
         return Usage(
             route=Route(
-                tier="handoff",
+                tier=tier,
                 reason=decision.reason,
                 deployment="none",
                 intent=intent,
@@ -260,7 +281,7 @@ class ChatService:
             cost_usd=0.0,
             latency_ms=round((self.clock() - started) * 1000),
             cache_hit=False,
-            levers_fired=["handoff"],
+            levers_fired=[lever],
             steps_used=0,
             loop_capped=False,
         )

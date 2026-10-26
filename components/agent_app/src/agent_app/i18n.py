@@ -38,6 +38,35 @@ def handoff_message(language: str, handoff: str) -> str:
     return HANDOFF[language].format(handoff=handoff)
 
 
+FILTERED = {
+    "en": (
+        "I cannot help with that request. You can ask me about a claim, "
+        "or reach a human agent: {handoff}."
+    ),
+    "fil": (
+        "Hindi ko po matutulungan ang kahilingang iyon. Magtanong po tungkol sa claim "
+        "o makipag-ugnayan sa taong ahente: {handoff}."
+    ),
+    "ceb": (
+        "Dili nako matabangan ana nga hangyo. Pangutana bahin sa claim "
+        "o kontaka ang tawhanong ahente: {handoff}."
+    ),
+    "id": (
+        "Saya tidak dapat membantu permintaan itu. Tanyakan soal klaim "
+        "atau hubungi agen manusia: {handoff}."
+    ),
+    "th": "ฉันช่วยเรื่องนั้นไม่ได้ ถามเกี่ยวกับเคลมได้ หรือติดต่อเจ้าหน้าที่: {handoff}",
+    "ja": (
+        "そのご依頼にはお応えできません。保険金請求についてお尋ねいただくか、"
+        "担当者にご連絡ください:{handoff}"
+    ),
+}
+
+
+def filtered_message(language: str, handoff: str) -> str:
+    return FILTERED[language].format(handoff=handoff)
+
+
 CANNOT_FINISH = {
     "en": (
         "I could not finish this request. Please try rephrasing it, "

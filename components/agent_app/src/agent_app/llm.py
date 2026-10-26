@@ -13,6 +13,21 @@ class ModelError(RuntimeError):
     pass
 
 
+class ContentFilteredError(ModelError):
+    pass
+
+
+def is_content_filter_error(exc: BaseException) -> bool:
+    code = getattr(exc, "code", None)
+    body = getattr(exc, "body", None)
+    if code == "content_filter":
+        return True
+    return isinstance(body, dict) and (
+        body.get("code") == "content_filter"
+        or (isinstance(body.get("error"), dict) and body["error"].get("code") == "content_filter")
+    )
+
+
 @dataclass(frozen=True)
 class ToolCall:
     id: str
@@ -131,7 +146,11 @@ class GatewayChatClient:
                 **options,
             )
         except Exception as exc:
+            if is_content_filter_error(exc):
+                raise ContentFilteredError("the request was blocked by the content filter") from exc
             raise ModelError(f"model call failed: {type(exc).__name__}") from exc
+        if response.choices[0].finish_reason == "content_filter":
+            raise ContentFilteredError("the answer was blocked by the content filter")
         message = response.choices[0].message
         usage = response.usage
         details = getattr(usage, "prompt_tokens_details", None) if usage else None

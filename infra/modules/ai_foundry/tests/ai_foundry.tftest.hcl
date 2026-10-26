@@ -76,3 +76,57 @@ run "rejects_broad_role" {
 
   expect_failures = [var.role_assignments]
 }
+
+run "chat_deployments_get_the_content_filter_with_prompt_shields_and_embeddings_do_not" {
+  command = plan
+
+  variables {
+    deployments = {
+      small-a   = { model_name = "gpt-4.1-mini", model_version = "2025-04-14" }
+      embedding = { model_name = "text-embedding-3-small", model_version = "1", content_filter = false }
+    }
+  }
+
+  assert {
+    condition     = azurerm_cognitive_deployment.this["small-a"].rai_policy_name == "claims-assistant-filter"
+    error_message = "chat deployments use the policy"
+  }
+
+  assert {
+    condition     = contains([for c in azurerm_cognitive_account_rai_policy.this["main"].content_filter : c.name], "Jailbreak") && contains([for c in azurerm_cognitive_account_rai_policy.this["main"].content_filter : c.name], "Indirect Attack")
+    error_message = "both prompt shields must be configured"
+  }
+
+  assert {
+    condition     = alltrue([for c in azurerm_cognitive_account_rai_policy.this["main"].content_filter : c.block_enabled && c.filter_enabled]) && azurerm_cognitive_account_rai_policy.this["main"].mode == "Blocking"
+    error_message = "every filter must block, not just annotate"
+  }
+
+  assert {
+    condition     = length(azurerm_cognitive_account_rai_policy.this["main"].content_filter) == 10
+    error_message = "four harm categories on prompt and completion plus two shields"
+  }
+}
+
+run "content_filter_can_be_turned_off" {
+  command = plan
+
+  variables {
+    content_filter = { enabled = false }
+  }
+
+  assert {
+    condition     = length(azurerm_cognitive_account_rai_policy.this) == 0
+    error_message = "no policy when the filter is off"
+  }
+}
+
+run "rejects_an_unknown_severity" {
+  command = plan
+
+  variables {
+    content_filter = { severity_threshold = "Extreme" }
+  }
+
+  expect_failures = [var.content_filter]
+}

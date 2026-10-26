@@ -28,11 +28,55 @@ resource "azurerm_cognitive_account_project" "this" {
   depends_on = [azurerm_cognitive_deployment.this]
 }
 
+locals {
+  rai_policies = var.content_filter.enabled ? { main = true } : {}
+
+  harm_categories = ["Hate", "Sexual", "SelfHarm", "Violence"]
+  filter_rules = concat(
+    flatten([
+      for category in local.harm_categories : [
+        for source in ["Prompt", "Completion"] : {
+          name      = category
+          source    = source
+          threshold = var.content_filter.severity_threshold
+        }
+      ]
+    ]),
+    [
+      { name = "Jailbreak", source = "Prompt", threshold = var.content_filter.prompt_shield_level },
+      { name = "Indirect Attack", source = "Prompt", threshold = var.content_filter.prompt_shield_level },
+    ],
+  )
+}
+
+resource "azurerm_cognitive_account_rai_policy" "this" {
+  for_each = local.rai_policies
+
+  name                 = "claims-assistant-filter"
+  cognitive_account_id = azurerm_cognitive_account.this.id
+  base_policy_name     = var.content_filter.base_policy_name
+  mode                 = "Blocking"
+  tags                 = var.tags
+
+  dynamic "content_filter" {
+    for_each = { for r in local.filter_rules : "${r.name}-${r.source}" => r }
+
+    content {
+      name               = content_filter.value.name
+      source             = content_filter.value.source
+      filter_enabled     = true
+      block_enabled      = true
+      severity_threshold = content_filter.value.threshold
+    }
+  }
+}
+
 resource "azurerm_cognitive_deployment" "this" {
   for_each = var.deployments
 
   name                 = each.key
   cognitive_account_id = azurerm_cognitive_account.this.id
+  rai_policy_name      = each.value.content_filter && var.content_filter.enabled ? azurerm_cognitive_account_rai_policy.this["main"].name : null
 
   model {
     format  = each.value.model_format

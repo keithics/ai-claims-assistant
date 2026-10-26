@@ -31,11 +31,12 @@ variable "custom_subdomain_name" {
 
 variable "deployments" {
   type = map(object({
-    model_name    = string
-    model_version = string
-    model_format  = optional(string, "OpenAI")
-    sku_name      = optional(string, "GlobalStandard")
-    capacity      = optional(number, 10)
+    model_name     = string
+    model_version  = string
+    model_format   = optional(string, "OpenAI")
+    sku_name       = optional(string, "GlobalStandard")
+    capacity       = optional(number, 10)
+    content_filter = optional(bool, true)
   }))
   description = "Model deployments keyed by deployment name. Pay-as-you-go only; capacity is in thousands of tokens per minute."
 
@@ -52,6 +53,22 @@ variable "deployments" {
   validation {
     condition     = alltrue([for d in values(var.deployments) : d.capacity > 0 && d.capacity <= 100])
     error_message = "capacity must be between 1 and 100 to keep spend small."
+  }
+}
+
+variable "content_filter" {
+  type = object({
+    enabled             = optional(bool, true)
+    base_policy_name    = optional(string, "Microsoft.DefaultV2")
+    severity_threshold  = optional(string, "Medium")
+    prompt_shield_level = optional(string, "High")
+  })
+  description = "Content filter policy attached to the chat deployments: harm categories on prompts and completions, plus the Jailbreak and Indirect Attack prompt shields. Embedding deployments are not filtered."
+  default     = {}
+
+  validation {
+    condition     = contains(["Low", "Medium", "High"], var.content_filter.severity_threshold) && contains(["Low", "Medium", "High"], var.content_filter.prompt_shield_level)
+    error_message = "severity_threshold and prompt_shield_level must be Low, Medium or High."
   }
 }
 
