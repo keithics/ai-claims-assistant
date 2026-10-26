@@ -1,14 +1,48 @@
-# Single source of routing rules. Starting point written by hand; evals proposes updates in
-# components/evals/results/routing.proposed.yaml and a human copies them here.
-version: 1
+# Single source of routing rules.
+# Version 2 was proposed by `propose-routing` from the full golden-set run
+# (components/evals/results/runs/full_golden) and approved by a human on 2026-10-26.
+# Future changes: run the evaluations, review the proposal, copy it here by hand.
+# Evidence:
+#   ceb/faq: small passed 2/5 but large only 3/5, large would not help, stay on small
+#   ceb/country_rule: small passed 10/10
+#   ceb/claim_status: small passed 5/5
+#   en/faq: small passed 3/5 but large only 3/5, large would not help, stay on small
+#   en/country_rule: small passed 10/10
+#   en/claim_status: small passed 4/5
+#   fil/faq: small passed 2/5 but large only 3/5, large would not help, stay on small
+#   fil/country_rule: small passed 10/10
+#   fil/claim_status: small passed 4/5
+#   id/faq: small passed 3/5 but large only 3/5, large would not help, stay on small
+#   id/country_rule: small passed 10/10
+#   id/claim_status: small passed 4/5
+#   ja/faq: small passed 3/5 but large only 3/5, large would not help, stay on small
+#   ja/country_rule: small passed 10/10
+#   ja/claim_status: small passed 5/5
+#   th/faq: small passed 3/5 but large only 3/5, large would not help, stay on small
+#   th/country_rule: small passed 9/10
+#   th/claim_status: small passed 5/5
+version: 2
 default_tier: small
 deployments:
-  small: [small-a, small-b]
-  large: [large]
+  small:
+  - small-a
+  - small-b
+  large:
+  - large
 rules: []
 output_limits:
-  faq: {small: 300, large: 3000}
-  country_rule: {small: 300, large: 3000}
-  claim_status: {small: 200, large: 3000}
-  claim_filing: {small: 500, large: 3500}
-  other: {small: 300, large: 3000}
+  faq:
+    small: 300
+    large: 3000
+  country_rule:
+    small: 300
+    large: 3000
+  claim_status:
+    small: 200
+    large: 3000
+  claim_filing:
+    small: 500
+    large: 3500
+  other:
+    small: 300
+    large: 3000

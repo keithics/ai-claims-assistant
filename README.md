@@ -212,7 +212,7 @@ This is a prototype and has not been security reviewed. To report a problem, ope
 | Scaffold, infrastructure basics, country packs, retrieval | done |
 | Agent, claims API, web UI, container hosting | done |
 | Gateway with token limits, failover, load test | done |
-| Evaluations and router | done; routing proposal awaiting human review |
+| Evaluations and router | done; the routing proposal was reviewed and adopted (version 2) |
 | Telemetry and budget control | built and verified (spans, queries, gateway metrics); the budget function is not deployed |
 | Token optimisation levers | measured; semantic cache built but not measured |
 | Safety, private networking, documentation | done; self-harm reply, scope guard, content filter and a 96-prompt test set verified live; private networking is plan-only |

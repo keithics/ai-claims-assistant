@@ -4,7 +4,7 @@ Things only a human can do or approve. Agents never run these. Tick them off as 
 
 ## Project wrap-up: what is left for you (2026-10-26)
 
-53 of 58 features are done. Waiting on you: F-038 (review the routing proposal), F-044 (deploy the budget function) and F-050 (approve a semantic-cache measurement). Blocked on purpose: F-040 (CI gate) and F-051 (batch evaluation, not feasible). These are the human steps that remain, in a sensible order.
+54 of 58 features are done. Waiting on you: F-044 (deploy the budget function) and F-050 (approve a semantic-cache measurement). Blocked on purpose: F-040 (CI gate) and F-051 (batch evaluation, not feasible). These are the human steps that remain, in a sensible order.
 
 **Do now**
 - [ ] `make apply ENV=dev`: one pending change (the gateway now logs successful requests as well as errors, so the dashboard's 429 rate has a correct denominator). The subscriptions no longer drift, because debug tracing is explicitly off.
@@ -13,7 +13,7 @@ Things only a human can do or approve. Agents never run these. Tick them off as 
 - [ ] Replace `CHANGE-ME@example.com` (APIM publisher email) and set a real alert email.
 
 **Decisions only you can make**
-- [ ] Review `components/evals/results/runs/full_golden/routing.proposed.yaml` (small everywhere, no large rules). If you agree, copy it to `components/router/routing.yaml` yourself.
+- [x] Done 2026-10-26: the routing proposal (small everywhere, no large rules) was approved and copied to `components/router/routing.yaml` (version 2).
 - [ ] Approve a measurement of the semantic cache (`enable_semantic_cache = true`, Azure Managed Redis bills hourly), then switch it off again.
 - [ ] Deploy the budget controller (`make package-budget`, `enable_budget_function = true`), and test it by lowering one country's budget.
 - [ ] Choose a license, or keep the repo all-rights-reserved; make the repo public if it is meant to be seen.
