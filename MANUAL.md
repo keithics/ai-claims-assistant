@@ -2,6 +2,28 @@
 
 Things only a human can do or approve. Agents never run these. Tick them off as you go. "Now" items are needed for what is already built; "Later" items are known from `FEATURES.md` and will be needed when that feature lands.
 
+## Project wrap-up: what is left for you (2026-10-26)
+
+Everything in the backlog is built except two features that are blocked on purpose (F-040 CI gate, F-051 batch evaluation) and one that is built but not measured (F-050 semantic cache). These are the human steps that remain, in a sensible order.
+
+**Do now**
+- [ ] `make apply ENV=dev`: one pending change (the gateway now logs successful requests as well as errors, so the dashboard's 429 rate has a correct denominator). The subscriptions no longer drift, because debug tracing is explicitly off.
+- [ ] **Stop the gateway when you are not testing**: `enable_apim = false` then apply, or `make destroy ENV=dev`. The Developer tier costs about the whole $50 budget and public internet scanners are already probing its hostname.
+- [ ] Reset the evaluation-window settings in `infra/envs/dev/terraform.tfvars` before any real use: country token limits (now 100,000 per minute), small and large deployment capacity (now 50), and your two home IP addresses in `apim_extra_allowed_addresses`.
+- [ ] Replace `CHANGE-ME@example.com` (APIM publisher email) and set a real alert email.
+
+**Decisions only you can make**
+- [ ] Review `components/evals/results/runs/full_golden/routing.proposed.yaml` (small everywhere, no large rules). If you agree, copy it to `components/router/routing.yaml` yourself.
+- [ ] Approve a measurement of the semantic cache (`enable_semantic_cache = true`, Azure Managed Redis bills hourly), then switch it off again.
+- [ ] Deploy the budget controller (`make package-budget`, `enable_budget_function = true`), and test it by lowering one country's budget.
+- [ ] Choose a license, or keep the repo all-rights-reserved; make the repo public if it is meant to be seen.
+- [ ] Production path: sign-in, a WAF, private access, regional deployments (see the table in ADR-001).
+
+**Content that needs people**
+- [ ] Native-speaker review of the six languages: UI strings, policy documents, the 180 golden cases, the 48 harmful and 48 off-topic prompts, and especially the self-harm and out-of-scope replies. Set `reviewed_by_native: true` only for what they actually checked.
+- [ ] Add a verified local crisis line for each market to the self-harm reply (it deliberately contains no phone numbers).
+- [ ] Replace the placeholder prices in `components/country_packs/models.yaml` with current Azure pricing; every dollar figure in `docs/unit-economics.md` is relative until you do.
+
 ## Now (F-001 to F-006 are built)
 
 - [ ] **Install uv:** `brew install uv`. Until then, `make` targets need `UV=<path to uv>`.

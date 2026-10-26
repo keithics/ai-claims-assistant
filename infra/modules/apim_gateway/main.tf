@@ -88,7 +88,7 @@ resource "azapi_resource" "diagnostic" {
       alwaysLog   = "allErrors"
       logClientIp = false
       metrics     = true
-      verbosity   = "error"
+      verbosity   = "information"
       sampling = {
         samplingType = "fixed"
         percentage   = 100
@@ -317,6 +317,7 @@ resource "azurerm_api_management_subscription" "models" {
   resource_group_name = var.resource_group_name
   product_id          = azurerm_api_management_product.models[each.key].id
   state               = "active"
+  allow_tracing       = false
 }
 
 resource "azurerm_key_vault_secret" "models_key" {
@@ -411,6 +412,7 @@ resource "azurerm_api_management_subscription" "claims" {
   resource_group_name = var.resource_group_name
   product_id          = azurerm_api_management_product.claims[each.key].id
   state               = "active"
+  allow_tracing       = false
 }
 
 resource "azurerm_key_vault_secret" "claims_key" {

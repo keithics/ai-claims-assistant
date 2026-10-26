@@ -29,7 +29,7 @@ It is a portfolio project that shows how I approach AI systems: design, measurem
 | **Observability and cost governance** | OpenTelemetry GenAI spans, KQL queries run against real data, a four-tab dashboard, and a budget controller that moves a country to `warn` or `exceeded` and triggers downgrade or handoff | [`components/telemetry`](components/telemetry), [`components/budget_controller`](components/budget_controller), [ADR-006](docs/adr/0006-budget-state-store.md) |
 | **Infrastructure as code** | Terraform modules with mocked-provider tests, cost guardrails, keyless identity, optional private networking, and real plans and applies against Azure | [`infra`](infra) |
 | **Full-stack delivery** | React + TypeScript UI with a generated API client, IME-safe Japanese input, Thai and Japanese rendering tests, accessibility basics, a Playwright happy path | [`components/web_ui`](components/web_ui) |
-| **Engineering discipline** | Architecture rules enforced in lint, 779 tests, decisions written as ADRs, honest limits documented | [`AGENTS.md`](AGENTS.md), [`docs/adr`](docs/adr) |
+| **Engineering discipline** | Architecture rules enforced in lint, about 1,000 tests, decisions written as ADRs, honest limits documented | [`AGENTS.md`](AGENTS.md), [`docs/adr`](docs/adr) |
 
 ## Results at a glance
 
@@ -39,7 +39,7 @@ It is a portfolio project that shows how I approach AI systems: design, measurem
 | Compact prompts + trimmed retrieval | input tokens **-40%**, cost **-31%**, latency **-16%**, tool accuracy +0.05 | [`docs/unit-economics.md`](docs/unit-economics.md) |
 | One country flooding the gateway | it is limited (156 of 180 requests got a 429) while others got 12 of 12 | [`docs/load-test.md`](docs/load-test.md) |
 | Poisoned policy document | retrieved and cited, instructions ignored, nothing drafted or approved | [`tests/integration/test_poison_document.py`](tests/integration/test_poison_document.py) |
-| Tests | 779 Python and TypeScript tests pass; router at 100% coverage; about 80 Terraform tests with mocked providers | `make test` |
+| Tests | 824 Python, 93 UI and 81 Terraform tests pass; router at 100% line and branch coverage | `make test` |
 
 ## The design ideas worth a look
 
@@ -213,9 +213,9 @@ This is a prototype and has not been security reviewed. To report a problem, ope
 | Agent, claims API, web UI, container hosting | done |
 | Gateway with token limits, failover, load test | done |
 | Evaluations and router | done; routing proposal awaiting human review |
-| Telemetry and budget control | built; gateway telemetry fix and the budget function await an apply |
+| Telemetry and budget control | built and verified (spans, queries, gateway metrics); the budget function is not deployed |
 | Token optimisation levers | measured; semantic cache built but not measured |
-| Safety, private networking, documentation | done; private networking is plan-only |
+| Safety, private networking, documentation | done; self-harm reply, scope guard, content filter and a 96-prompt test set verified live; private networking is plan-only |
 
 Things to know before relying on it:
 
@@ -226,7 +226,8 @@ Things to know before relying on it:
 - `agent_app` and `claims_api` keep state in memory, so they run as one replica.
 - **Translations, policy documents and test cases are machine-written** and not reviewed by native speakers.
 - There is no CI yet (deferred by decision); the workflows in `.github/workflows` are inert.
-- The model prompt shield did not block one classic jailbreak prompt in a live check (the model declined it); treat it as one layer.
+- The model prompt shield did not block one classic jailbreak prompt in a live check (the model declined it), and the content filter caught only 29% of a 96-prompt harmful set, most of the rest being declined by the model itself; treat each as one layer.
+- The scope guard stops about 70% of off-topic requests without a model call and is weakest in Filipino and Thai; the rest get a polite model refusal.
 - Not legal advice, and nothing here reflects a real insurer or real regulation.
 
 ## About this project

@@ -83,6 +83,15 @@ run "one_product_and_subscription_per_country_and_keys_go_to_key_vault" {
   }
 }
 
+run "subscriptions_cannot_request_debug_traces" {
+  command = plan
+
+  assert {
+    condition     = alltrue([for s in azurerm_api_management_subscription.models : s.allow_tracing == false])
+    error_message = "Debug tracing would expose request and response bodies to key holders."
+  }
+}
+
 run "each_country_gets_its_own_token_limit_in_the_rendered_policy" {
   command = plan
 
@@ -186,6 +195,11 @@ run "diagnostic_turns_on_custom_metrics_and_does_not_log_client_ips" {
   assert {
     condition     = azapi_resource.diagnostic.body.properties.metrics && !azapi_resource.diagnostic.body.properties.logClientIp
     error_message = "Custom metrics on, client IP logging off."
+  }
+
+  assert {
+    condition     = azapi_resource.diagnostic.body.properties.verbosity == "information" && azapi_resource.diagnostic.body.properties.sampling.percentage == 100
+    error_message = "Successful requests must be logged too, or the 429 rate has the wrong denominator."
   }
 }
 
